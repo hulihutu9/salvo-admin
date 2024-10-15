@@ -11,3 +11,4 @@ pub mod sys_user_role_entity;
 pub mod sys_user_post_entity;
 pub mod excel_entity;
 pub mod sys_notice_entity;
+pub mod gen_table_entity;

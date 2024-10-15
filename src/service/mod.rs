@@ -7,3 +7,5 @@ pub mod post_service;
 pub mod monitor_service;
 pub mod excel_service;
 pub mod notice_service;
+pub mod gen_table_service;
+

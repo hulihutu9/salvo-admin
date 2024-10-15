@@ -10,3 +10,4 @@ pub mod swagger_model;
 pub mod monitor_model;
 pub mod excel_model;
 pub mod notice_model;
+pub mod gen_table_model;

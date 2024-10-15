@@ -11,3 +11,4 @@ pub mod monitor_controller;
 
 pub mod excel_controller;
 pub mod notice_controller;
+pub mod gen_controller;

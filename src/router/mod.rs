@@ -19,6 +19,7 @@ pub mod post_router;
 pub mod monitor_router;
 pub mod excel_router;
 mod notice_router;
+pub mod gen_router;
 
 pub fn init_router() ->Router{
     let static_dir = Router::with_path("/static/<*path>").get(
@@ -46,7 +47,7 @@ pub fn init_router() ->Router{
                     menu_router::init_router()
                 )
                 .push(
-                role_router::init_router()
+                    role_router::init_router()
                 )
                 .push(
                     dept_router::init_router()
@@ -63,7 +64,9 @@ pub fn init_router() ->Router{
                 .push(
                     notice_router::init_router()
                 )
-
+                .push(
+                    gen_router::init_router()
+                )
         );
 
     let session_handler = SessionHandler::builder(
