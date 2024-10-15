@@ -9,23 +9,8 @@ pub struct GenTableList {
     pub table_id:Option<i64>,
     pub table_name:Option<String>,
     pub table_comment:Option<String>,
-    pub sub_table_name:Option<String>,
-    pub sub_table_fk_name:Option<String>,
-    pub class_name:Option<String>,
-    pub tpl_category:Option<String>,
-    pub package_name:Option<String>,
-    pub module_name:Option<String>,
-    pub business_name:Option<String>,
-    pub function_name:Option<String>,
-    pub function_author:Option<String>,
-    pub gen_type:Option<String>,
-    pub gen_path:Option<String>,
-    pub options:Option<String>,
-    pub create_by:Option<String>,
     pub create_time:Option<DateTime>,
-    pub update_by:Option<String>,
     pub update_time:Option<DateTime>,
-    pub remark:Option<String>,
 }
 
 #[derive(Debug,Serialize,Deserialize,ToParameters,Clone)]
@@ -50,4 +35,14 @@ pub struct GenTableModifyPayload {
     pub class_name:Option<String>,
     pub function_author:Option<String>,
     pub remark:Option<String>,
+}
+
+#[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
+#[salvo(schema(rename_all="camelCase"))]
+#[serde(rename_all(serialize="camelCase", deserialize ="SCREAMING_SNAKE_CASE"))]
+pub struct DbTableList {
+    pub table_name:Option<String>,
+    pub table_comment:Option<String>,
+    pub create_time:Option<DateTime>,
+    pub update_time:Option<DateTime>,
 }

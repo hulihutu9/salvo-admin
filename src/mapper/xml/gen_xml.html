@@ -46,4 +46,17 @@
     <select id="get_gen_table_list">
         `select * from gen_table`
     </select>
+    <select id="get_db_table_page">
+        `select table_name, table_comment, create_time, update_time from information_schema.tables
+        where table_schema = (select database())
+        AND table_name NOT LIKE 'qrtz\_%' AND table_name NOT LIKE 'gen\_%'
+        AND table_name NOT IN (select table_name from gen_table)`
+        <if test="table_name != null && table_name != ''">
+            ` AND lower(table_name) like lower(concat('%', #{table_name}, '%'))`
+        </if>
+        <if test="table_comment != null && table_comment != ''">
+            ` AND lower(table_comment) like lower(concat('%', #{table_comment}, '%'))`
+        </if>
+        ` order by create_time desc limit #{page_num},#{page_size}`
+    </select>
 </mapper>

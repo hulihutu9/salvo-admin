@@ -3,7 +3,7 @@ use rbatis::{crud, html_sql};
 use rbatis::rbdc::db::ExecResult;
 use rbatis::rbdc::datetime::DateTime;
 use crate::entity::gen_table_entity::GenTableEntity;
-use crate::model::gen_table_model::GenTableList;
+use crate::model::gen_table_model::{GenTableList, DbTableList};
 
 #[html_sql("src/mapper/xml/gen_xml.html")]
 pub async fn get_gen_table_list(rb: &mut dyn Executor) ->rbatis::Result<Vec<GenTableList>> {
@@ -11,35 +11,43 @@ pub async fn get_gen_table_list(rb: &mut dyn Executor) ->rbatis::Result<Vec<GenT
 }
 
 #[html_sql("src/mapper/xml/gen_xml.html")]
-pub async fn get_gen_table_page(rb: &mut dyn Executor,page_num:u64,page_size:u64,
-                            table_name:Option<String>,table_comment:Option<String>,
-                            begin_time:Option<DateTime>)
-    ->rbatis::Result<Vec<GenTableList>> {
+pub async fn get_gen_table_page(
+    rb: &mut dyn Executor,page_num:u64,page_size:u64, table_name:Option<String>,
+    table_comment:Option<String>, begin_time:Option<DateTime>
+) ->rbatis::Result<Vec<GenTableList>> {
     impled!()
 }
 
 #[html_sql("src/mapper/xml/gen_xml.html")]
-pub async fn get_gen_table_count(rb: &mut dyn Executor,table_name:Option<String>,
-                             table_comment:Option<String>,begin_time:Option<DateTime>)
-    ->rbatis::Result<u64> {
+pub async fn get_gen_table_count(
+    rb: &mut dyn Executor,table_name:Option<String>,
+    table_comment:Option<String>,begin_time:Option<DateTime>
+) ->rbatis::Result<u64> {
     impled!()
 }
 
 #[html_sql("src/mapper/xml/gen_xml.html")]
-pub async fn get_gen_table_by_id(rb: &mut dyn Executor,table_id:i64)
-    ->rbatis::Result<Vec<GenTableList>> {
+pub async fn get_gen_table_by_id(
+    rb: &mut dyn Executor,table_id:i64
+) ->rbatis::Result<Vec<GenTableList>> {
     impled!()
 }
 
-// /db/list
+#[html_sql("src/mapper/xml/gen_xml.html")]
+pub async fn get_db_table_page(
+    rb: &mut dyn Executor,page_num:u64,page_size:u64
+) ->rbatis::Result<Vec<DbTableList>> {
+    impled!()
+}
 // /column/{tableId}
 // /importTable
 // /createTable
-// /updateTabel
+// /updateTable
 
 #[html_sql("src/mapper/xml/gen_xml.html")]
-pub async fn del_gen_table_by_id(rb: &mut dyn Executor,table_id:String)
-    ->rbatis::Result<ExecResult> {
+pub async fn del_gen_table_by_id(
+    rb: &mut dyn Executor,table_id:String
+) ->rbatis::Result<ExecResult> {
     impled!()
 }
 
