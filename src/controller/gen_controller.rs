@@ -1,8 +1,8 @@
 use salvo::{oapi::endpoint, Writer};
-use salvo::oapi::extract::{JsonBody, PathParam};
+use salvo::oapi::extract::PathParam;
 use salvo::Request;
 use crate::model::common_model::Page;
-use crate::model::gen_table_model::{GenTableList, GenTableListPayload, GenTableModifyPayload, DbTableList, GenTableAddPayload};
+use crate::model::gen_table_model::{GenTableList, GenTableListPayload, DbTableList};
 use crate::service::gen_table_service;
 use crate::utils::res::{match_no_res_ok, match_ok, Res, ResObj};
 
@@ -71,6 +71,11 @@ pub async fn get_db_table_page(req:&mut Request)->Res<Page<DbTableList>>{
         (status_code = 200,body=ResObj<()>,description ="添加数据表")
     ),
 )]
-pub async fn post_import_tables(payload: JsonBody<Vec<GenTableAddPayload>>)->Res<()>{
-    match_no_res_ok(gen_table_service::post_import_tables(payload.into_inner()).await)
+pub async fn post_import_tables(req:&mut Request)->Res<()>{
+    let param = req.query::<String>("tables").unwrap();
+    let table_names = format!("('{}')", param.replace(",", "','"));
+    // Query tables info in database
+    let table_info = gen_table_service::get_db_table_by_names(table_names)
+        .await.unwrap();
+    match_no_res_ok(gen_table_service::import_tables(table_info).await)
 }

@@ -33,12 +33,7 @@ pub async fn get_gen_table_by_id(
     impled!()
 }
 
-#[html_sql("src/mapper/xml/gen_xml.html")]
-pub async fn get_db_table_page(
-    rb: &mut dyn Executor,page_num:u64,page_size:u64
-) ->rbatis::Result<Vec<DbTableList>> {
-    impled!()
-}
+
 // /column/{tableId}
 // /createTable
 // /updateTable
@@ -55,5 +50,24 @@ pub async fn del_gen_table_by_id(
 // /genCode/{tableId}
 // /syncDb
 // /batchGenCode
+
+#[html_sql("src/mapper/xml/gen_xml.html")]
+pub async fn get_db_table_page(
+    rb: &mut dyn Executor,page_num:u64,page_size:u64
+) ->rbatis::Result<Vec<DbTableList>> {
+    impled!()
+}
+
+#[html_sql("src/mapper/xml/gen_xml.html")]
+pub async fn get_db_table_count(rb: &mut dyn Executor) -> rbatis::Result<u64> {
+    impled!()
+}
+
+#[html_sql("src/mapper/xml/gen_xml.html")]
+pub async fn get_db_table_by_names(
+    rb: &mut dyn Executor, names: String
+) ->rbatis::Result<Vec<DbTableList>> {
+    impled!()
+}
 
 crud!(GenTableEntity{},"gen_table");

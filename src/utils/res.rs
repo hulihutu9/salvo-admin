@@ -7,7 +7,7 @@ pub use crate::model::common_model::ResObj;
 impl<T:ToSchema> ResObj<T> {
     pub fn ok(data: Option<T>)->Self{
       Self {
-          code: 0,
+          code: 200,
           msg: "访问成功".to_string(),
           data,
       }
