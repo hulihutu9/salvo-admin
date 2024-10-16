@@ -40,7 +40,6 @@ pub async fn get_db_table_page(
     impled!()
 }
 // /column/{tableId}
-// /importTable
 // /createTable
 // /updateTable
 

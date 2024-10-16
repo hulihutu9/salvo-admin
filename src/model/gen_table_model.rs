@@ -28,6 +28,16 @@ pub struct GenTableListPayload {
 #[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
 #[salvo(schema(rename_all="camelCase"))]
 #[serde(rename_all(deserialize="camelCase"))]
+pub struct GenTableAddPayload {
+    pub table_name:Option<String>,
+    pub table_comment:Option<String>,
+    pub create_time:Option<DateTime>,
+    pub update_time:Option<DateTime>,
+}
+
+#[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
+#[salvo(schema(rename_all="camelCase"))]
+#[serde(rename_all(deserialize="camelCase"))]
 pub struct GenTableModifyPayload {
     pub table_id:Option<i64>,
     pub table_title:Option<String>,
