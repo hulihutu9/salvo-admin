@@ -18,6 +18,13 @@ pub async fn get_gen_table_page(
     let list = gen_table_mapper::get_gen_table_page(
         &mut GLOBAL_DB.clone(),num,size,table_name.clone(),table_comment.clone(),begin_time.clone()
     ).await?;
+
+    // get table "gen_column" rows
+    let table_ids: Vec<Option<i64>> = list.iter().map(|row| row.table_id).collect();
+    let columns = gen_table_mapper::get_gen_table_column_list(
+        &mut GLOBAL_DB.clone(), table_ids
+    ).await?;
+
     let total = gen_table_mapper::get_gen_table_count(
         &mut GLOBAL_DB.clone(),table_name,table_comment,begin_time.clone()
     ).await?;
