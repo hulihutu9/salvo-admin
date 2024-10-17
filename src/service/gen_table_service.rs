@@ -15,15 +15,24 @@ pub async fn get_gen_table_page(
     table_comment:Option<String>,begin_time:Option<DateTime>
 ) ->rbatis::Result<Page<GenTableList>>{
     let (num,size) = create_page(page_num,page_size);
-    let list = gen_table_mapper::get_gen_table_page(
+    let mut list = gen_table_mapper::get_gen_table_page(
         &mut GLOBAL_DB.clone(),num,size,table_name.clone(),table_comment.clone(),begin_time.clone()
     ).await?;
 
     // get table "gen_column" rows
-    let table_ids: Vec<Option<i64>> = list.iter().map(|row| row.table_id).collect();
-    let columns = gen_table_mapper::get_gen_table_column_list(
+    let table_ids: Vec<String> = list.iter().map(|row|
+        row.table_id.unwrap_or(-1).to_string()).collect();
+    let columns = gen_table_mapper::get_gen_table_column_list_by_ids(
         &mut GLOBAL_DB.clone(), table_ids
     ).await?;
+
+    // set rows to GenTableList
+    for gen_table in list.iter_mut() {
+        let id = gen_table.table_id.map(|v| v.to_string());
+        let res = columns.iter().find(|&row|
+            row.table_id == id).cloned();
+        gen_table.columns = res;
+    }
 
     let total = gen_table_mapper::get_gen_table_count(
         &mut GLOBAL_DB.clone(),table_name,table_comment,begin_time.clone()
@@ -75,7 +84,7 @@ pub async fn import_tables(table_info: Vec<DbTableList>) ->rbatis::Result<bool> 
             tpl_category: None,
             package_name: None,
             module_name: None,
-            business_name: table.table_name,
+            business_name: table.table_name.clone(),
             function_name: table.table_comment,
             function_author: None,
             gen_type: None,
@@ -88,6 +97,16 @@ pub async fn import_tables(table_info: Vec<DbTableList>) ->rbatis::Result<bool> 
             remark: None,
         };
         rows = GenTableEntity::insert(&mut GLOBAL_DB.clone(),&gen_table).await?;
+
+        // insert table "gen_table_column"
+        if rows.rows_affected > 0 {
+            let gen_table_columns = gen_table_mapper::get_gen_table_columns_by_name(
+                &mut GLOBAL_DB.clone(), table.table_name.clone()).await?;
+            for column in gen_table_columns.iter_mut() {
+
+            }
+        }
     }
+
     Ok(is_modify_ok(rows.rows_affected))
 }

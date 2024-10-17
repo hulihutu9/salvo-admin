@@ -34,7 +34,7 @@ pub struct GenTableList {
 #[serde(rename_all(serialize="camelCase"))]
 pub struct GenTableColumnList {
     pub column_id: Option<i64>,
-    pub table_id: Option<i64>,
+    pub table_id: Option<String>,
     pub column_name: Option<String>,
     pub column_comment: Option<String>,
     pub column_type: Option<String>,

@@ -7,3 +7,4 @@ pub mod func;
 pub mod mysql;
 pub mod system;
 pub mod common;
+pub mod gen_utils;

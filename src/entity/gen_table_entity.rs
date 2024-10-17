@@ -1,6 +1,5 @@
 use serde::{Serialize,Deserialize};
 use rbatis::rbdc::datetime::DateTime;
-use salvo::oapi::ToSchema;
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
 pub struct GenTableEntity {
