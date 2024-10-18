@@ -1,4 +1,4 @@
-use crate::model::gen_table_model::{GenTableColumnList, GenTableList};
+use crate::entity::gen_table_entity::{GenTableColumnEntity, GenTableEntity};
 use crate::utils::common;
 /**
  * 代码生成通用常量
@@ -7,120 +7,158 @@ use crate::utils::common;
  */
 
 /** 单表（增删改查） */
+#[allow(dead_code)]
 pub const TPL_CRUD: &str = "crud";
 
 /** 树表（增删改查） */
+#[allow(dead_code)]
 pub const TPL_TREE: &str = "tree";
 
 /** 主子表（增删改查） */
+#[allow(dead_code)]
 pub const TPL_SUB: &str = "sub";
 
 /** 树编码字段 */
+#[allow(dead_code)]
 pub const TREE_CODE: &str = "treeCode";
 
 /** 树父编码字段 */
+#[allow(dead_code)]
 pub const TREE_PARENT_CODE: &str = "treeParentCode";
 
 /** 树名称字段 */
+#[allow(dead_code)]
 pub const TREE_NAME: &str = "treeName";
 
 /** 上级菜单ID字段 */
+#[allow(dead_code)]
 pub const PARENT_MENU_ID: &str = "parentMenuId";
 
 /** 上级菜单名称字段 */
+#[allow(dead_code)]
 pub const PARENT_MENU_NAME: &str = "parentMenuName";
 
 /** 数据库字符串类型 */
+#[allow(dead_code)]
 pub const COLUMNTYPE_STR: [&str;4] = [ "char", "varchar", "nvarchar", "varchar2" ];
 
 /** 数据库文本类型 */
+#[allow(dead_code)]
 pub const COLUMNTYPE_TEXT: [&str;4] = [ "tinytext", "text", "mediumtext", "longtext" ];
 
 /** 数据库时间类型 */
+#[allow(dead_code)]
 pub const COLUMNTYPE_TIME: [&str;4] = [ "datetime", "time", "date", "timestamp" ];
 
 /** 数据库数字类型 */
+#[allow(dead_code)]
 pub const COLUMNTYPE_NUMBER: [&str;11] = [ "tinyint", "smallint", "mediumint", "int", "number",
     "integer", "bit", "bigint", "float", "double", "decimal" ];
 
 /** 页面不需要编辑字段 */
+#[allow(dead_code)]
 pub const COLUMNNAME_NOT_EDIT: [&str;4] = [ "id", "create_by", "create_time", "del_flag" ];
 
 /** 页面不需要显示的列表字段 */
+#[allow(dead_code)]
 pub const COLUMNNAME_NOT_LIST: [&str;6] = [ "id", "create_by", "create_time", "del_flag", "update_by",
 "update_time" ];
 
 /** 页面不需要查询字段 */
+#[allow(dead_code)]
 pub const COLUMNNAME_NOT_QUERY: [&str;7] = [ "id", "create_by", "create_time", "del_flag", "update_by",
 "update_time", "remark" ];
 
 /** Entity基类字段 */
+#[allow(dead_code)]
 pub const BASE_ENTITY: [&str;5] = [ "createBy", "createTime", "updateBy", "updateTime", "remark" ];
 
 /** Tree基类字段 */
+#[allow(dead_code)]
 pub const TREE_ENTITY: [&str;5] = [ "parentName", "parentId", "orderNum", "ancestors", "children" ];
 
 /** 文本框 */
+#[allow(dead_code)]
 pub const HTML_INPUT: &str = "input";
 
 /** 文本域 */
+#[allow(dead_code)]
 pub const HTML_TEXTAREA: &str = "textarea";
 
 /** 下拉框 */
+#[allow(dead_code)]
 pub const HTML_SELECT: &str = "select";
 
 /** 单选框 */
+#[allow(dead_code)]
 pub const HTML_RADIO: &str = "radio";
 
 /** 复选框 */
+#[allow(dead_code)]
 pub const HTML_CHECKBOX: &str = "checkbox";
 
 /** 日期控件 */
+#[allow(dead_code)]
 pub const HTML_DATETIME: &str = "datetime";
 
 /** 图片上传控件 */
+#[allow(dead_code)]
 pub const HTML_IMAGE_UPLOAD: &str = "imageUpload";
 
 /** 文件上传控件 */
+#[allow(dead_code)]
 pub const HTML_FILE_UPLOAD: &str = "fileUpload";
 
 /** 富文本控件 */
+#[allow(dead_code)]
 pub const HTML_EDITOR: &str = "editor";
 
 /** 字符串类型 */
+#[allow(dead_code)]
 pub const TYPE_STRING: &str = "String";
 
 /** 整型 */
-pub const TYPE_INTEGER: &str = "Integer";
+#[allow(dead_code)]
+pub const TYPE_INTEGER: &str = "i32";
 
 /** 长整型 */
-pub const TYPE_LONG: &str = "Long";
+#[allow(dead_code)]
+pub const TYPE_LONG: &str = "i64";
 
 /** 浮点型 */
-pub const TYPE_DOUBLE: &str = "Double";
+#[allow(dead_code)]
+pub const TYPE_DOUBLE: &str = "f64";
 
 /** 高精度计算类型 */
-pub const TYPE_BIGDECIMAL: &str = "BigDecimal";
+#[allow(dead_code)]
+pub const TYPE_BIGDECIMAL: &str = "f64";
 
 /** 时间类型 */
-pub const TYPE_DATE: &str = "Date";
+#[allow(dead_code)]
+pub const TYPE_DATE: &str = "DateTime";
 
 /** 模糊查询 */
+#[allow(dead_code)]
 pub const QUERY_LIKE: &str = "LIKE";
 
 /** 相等查询 */
+#[allow(dead_code)]
 pub const QUERY_EQ: &str = "EQ";
 
 /** 需要 */
+#[allow(dead_code)]
 pub const REQUIRE: &str = "1";
 
-pub fn init_column_field(mut column: GenTableColumnList, table: GenTableList) {
-    let data_type = get_db_type(column.column_type.unwrap().as_str());
-    let column_name = column.column_name.unwrap().as_str();
+pub fn init_column_field(column: &mut GenTableColumnEntity, table: &GenTableEntity) {
+    let column_type = column.column_type.clone().unwrap_or("".to_string());
+    let column_name_lowercase = column.column_name.clone().unwrap_or("".to_string())
+        .to_lowercase();
+    let data_type = get_db_type(column_type.as_str());
+    let column_name = column_name_lowercase.as_str();
     column.table_id = table.table_id.map(|v| v.to_string());
     column.create_by = table.create_by.clone();
     column.java_field = Some(common::to_pascal_case(column_name));
-    // 设置java字段名
+    // 设置默认字段类型
     column.java_type = Some("String".to_string());
     column.query_type = Some("EQ".to_string());
 
@@ -132,27 +170,28 @@ pub fn init_column_field(mut column: GenTableColumnList, table: GenTableList) {
             false => HTML_INPUT,
         };
         column.html_type = Some(html_type.to_string());
-    } else if COLUMNTYPE_TIME.contains(&data_type) {
+    }
+    else if COLUMNTYPE_TIME.contains(&data_type) {
         column.java_type = Some(TYPE_DATE.to_string());
         column.html_type = Some(HTML_DATETIME.to_string());
-    } else if COLUMNTYPE_NUMBER.contains(&data_type) {
+    }
+    else if COLUMNTYPE_NUMBER.contains(&data_type) {
         column.html_type= Some(HTML_INPUT.to_string());
 
         // 如果是浮点型 统一用BigDecimal
-        String[] str = StringUtils.split(StringUtils.substringBetween(column.getColumnType(), "(", ")"), ",");
-        if (str != null && str.length == 2 && Integer.parseInt(str[1]) > 0)
-        {
-            column.setJavaType(TYPE_BIGDECIMAL);
+        let num_str = common::sub_string_between(&data_type, "(", ")");
+        let str: Vec<&str> = num_str.split( ",").collect();
+        if str.len() != 0 && str.len() == 2 && str[1].parse::<i32>().unwrap_or(0) > 0 {
+            column.java_type = Some(TYPE_BIGDECIMAL.to_string());
         }
         // 如果是整形
-        else if (str != null && str.length == 1 && Integer.parseInt(str[0]) <= 10)
-        {
-            column.setJavaType(TYPE_INTEGER);
+        else if str.len() != 0 && str.len() == 1 && str[0].parse::<i32>().unwrap_or(0) <= 10 {
+            column.java_type = Some(TYPE_INTEGER.to_string());
         }
         // 长整形
         else
         {
-            column.setJavaType(TYPE_LONG);
+            column.java_type = Some(TYPE_LONG.to_string());
         }
     }
 
@@ -160,51 +199,41 @@ pub fn init_column_field(mut column: GenTableColumnList, table: GenTableList) {
     column.is_insert = Some(REQUIRE.to_string());
 
     // 编辑字段
-    if (!arraysContains(COLUMNNAME_NOT_EDIT, columnName) && !column.isPk())
-    {
-        column.setIsEdit(REQUIRE);
+    if !COLUMNNAME_NOT_EDIT.contains(&column_name) && column.is_pk != Some("1".to_string()) {
+        column.is_edit = Some(REQUIRE.to_string());
     }
     // 列表字段
-    if (!arraysContains(COLUMNNAME_NOT_LIST, columnName) && !column.isPk())
-    {
-        column.setIsList(REQUIRE);
+    if !COLUMNNAME_NOT_LIST.contains(&column_name) && column.is_pk != Some("1".to_string()) {
+        column.is_list= Some(REQUIRE.to_string());
     }
     // 查询字段
-    if (!arraysContains(COLUMNNAME_NOT_QUERY, columnName) && !column.isPk())
-    {
-        column.setIsQuery(REQUIRE);
+    if !COLUMNNAME_NOT_QUERY.contains(&column_name) && column.is_pk != Some("1".to_string()) {
+        column.is_query = Some(REQUIRE.to_string());
     }
 
     // 查询字段类型
-    if (StringUtils.endsWithIgnoreCase(columnName, "name"))
-    {
-        column.setQueryType(QUERY_LIKE);
+    if column_name.ends_with("name") {
+        column.query_type = Some(QUERY_LIKE.to_string());
     }
     // 状态字段设置单选框
-    if (StringUtils.endsWithIgnoreCase(columnName, "status"))
-    {
-        column.setHtmlType(HTML_RADIO);
+    if column_name.ends_with("status") {
+        column.html_type = Some(HTML_RADIO.to_string());
     }
     // 类型&性别字段设置下拉框
-    else if (StringUtils.endsWithIgnoreCase(columnName, "type")
-        || StringUtils.endsWithIgnoreCase(columnName, "sex"))
-    {
-        column.setHtmlType(HTML_SELECT);
+    else if column_name.ends_with("type") || column_name.ends_with("sex") {
+        column.html_type = Some(HTML_SELECT.to_string());
     }
     // 图片字段设置图片上传控件
-    else if (StringUtils.endsWithIgnoreCase(columnName, "image"))
-    {
-        column.setHtmlType(HTML_IMAGE_UPLOAD);
+    else if column_name.ends_with("image") {
+        column.html_type = Some(HTML_IMAGE_UPLOAD.to_string());
     }
     // 文件字段设置文件上传控件
-    else if (StringUtils.endsWithIgnoreCase(columnName, "file"))
-    {
-        column.setHtmlType(HTML_FILE_UPLOAD);
+    else if column_name.ends_with("file") {
+        column.html_type = Some(HTML_FILE_UPLOAD.to_string());
     }
     // 内容字段设置富文本控件
-    else if (StringUtils.endsWithIgnoreCase(columnName, "content"))
-    {
-        column.setHtmlType(HTML_EDITOR);
+    else if column_name.ends_with("content") {
+        column.html_type = Some(HTML_EDITOR.to_string());
     }
 }
 
@@ -219,7 +248,7 @@ pub fn get_column_length(column_type: &str) -> usize {
     if start > 0 {
         let end = column_type.find(")").unwrap_or(0);
         if end > start {
-            end - start
+            column_type[start + 1..end].parse::<usize>().unwrap_or(0)
         } else { 0 }
     }
     else { 0 }

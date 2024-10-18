@@ -75,7 +75,7 @@ pub async fn post_import_tables(req:&mut Request)->Res<()>{
     let param = req.query::<String>("tables").unwrap();
     let table_names = format!("('{}')", param.replace(",", "','"));
     // Query tables info in database
-    let table_info = gen_table_service::get_db_table_by_names(table_names)
+    let table_list = gen_table_service::get_db_table_by_names(table_names)
         .await.unwrap();
-    match_no_res_ok(gen_table_service::import_tables(table_info).await)
+    match_no_res_ok(gen_table_service::import_tables(table_list).await)
 }

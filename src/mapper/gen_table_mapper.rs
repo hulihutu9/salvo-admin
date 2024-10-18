@@ -80,7 +80,7 @@ pub async fn get_gen_table_column_list_by_ids(
 #[html_sql("src/mapper/xml/gen_xml.html")]
 pub async fn get_gen_table_columns_by_name(
     rb: &mut dyn Executor, table_name: String
-) ->rbatis::Result<Vec<GenTableColumnList>> {
+) ->rbatis::Result<Vec<GenTableColumnEntity>> {
     impled!()
 }
 

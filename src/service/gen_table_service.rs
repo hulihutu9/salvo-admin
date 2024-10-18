@@ -1,12 +1,12 @@
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::rbdc::db::ExecResult;
-use crate::entity::gen_table_entity::GenTableEntity;
+use crate::entity::gen_table_entity::{GenTableColumnEntity, GenTableEntity};
 use crate::GLOBAL_DB;
 use crate::mapper::gen_table_mapper;
 use crate::model::common_model::Page;
 use crate::model::gen_table_model::{DbTableList, GenTableList};
 use crate::utils::func::{create_page, create_page_list, is_modify_ok};
-use crate::utils::common;
+use crate::utils::{common, gen_utils};
 
 // query table "gen_table"
 // return: list "gen_table" rows of page "page_num"
@@ -19,19 +19,21 @@ pub async fn get_gen_table_page(
         &mut GLOBAL_DB.clone(),num,size,table_name.clone(),table_comment.clone(),begin_time.clone()
     ).await?;
 
-    // get table "gen_column" rows
-    let table_ids: Vec<String> = list.iter().map(|row|
-        row.table_id.unwrap_or(-1).to_string()).collect();
-    let columns = gen_table_mapper::get_gen_table_column_list_by_ids(
-        &mut GLOBAL_DB.clone(), table_ids
-    ).await?;
+    if !list.is_empty() {
+        // get table "gen_column" rows
+        let table_ids: Vec<String> = list.iter().map(|row|
+            row.table_id.unwrap_or(-1).to_string()).collect();
+        let columns = gen_table_mapper::get_gen_table_column_list_by_ids(
+            &mut GLOBAL_DB.clone(), table_ids
+        ).await?;
 
-    // set rows to GenTableList
-    for gen_table in list.iter_mut() {
-        let id = gen_table.table_id.map(|v| v.to_string());
-        let res = columns.iter().find(|&row|
-            row.table_id == id).cloned();
-        gen_table.columns = res;
+        // set rows to GenTableList
+        for gen_table in list.iter_mut() {
+            let id = gen_table.table_id.map(|v| v.to_string());
+            let res = columns.iter().find(|&row|
+                row.table_id == id).cloned();
+            gen_table.columns = res;
+        }
     }
 
     let total = gen_table_mapper::get_gen_table_count(
@@ -67,9 +69,9 @@ pub async fn get_db_table_by_names(names: String) -> rbatis::Result<Vec<DbTableL
     Ok(gen_table_mapper::get_db_table_by_names(&mut GLOBAL_DB.clone(),names).await?)
 }
 
-pub async fn import_tables(table_info: Vec<DbTableList>) ->rbatis::Result<bool> {
+pub async fn import_tables(table_list: Vec<DbTableList>) ->rbatis::Result<bool> {
     let mut rows = ExecResult{rows_affected: 0, last_insert_id: rbs::to_value!(0)};
-    for table in table_info {
+    for table in table_list {
         let class_name = table.table_name.clone().map(
             |s| common::to_pascal_case(s.as_str())
         );
@@ -100,10 +102,11 @@ pub async fn import_tables(table_info: Vec<DbTableList>) ->rbatis::Result<bool> 
 
         // insert table "gen_table_column"
         if rows.rows_affected > 0 {
-            let gen_table_columns = gen_table_mapper::get_gen_table_columns_by_name(
-                &mut GLOBAL_DB.clone(), table.table_name.clone()).await?;
+            let mut gen_table_columns = gen_table_mapper::get_gen_table_columns_by_name(
+                &mut GLOBAL_DB.clone(), table.table_name.clone().unwrap()).await?;
             for column in gen_table_columns.iter_mut() {
-
+                gen_utils::init_column_field(column, &gen_table);
+                rows = GenTableColumnEntity::insert(&mut GLOBAL_DB.clone(),&column).await?;
             }
         }
     }

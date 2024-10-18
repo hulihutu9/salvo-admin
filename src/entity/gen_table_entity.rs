@@ -26,9 +26,10 @@ pub struct GenTableEntity {
 }
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
+#[serde(rename_all(deserialize ="SCREAMING_SNAKE_CASE"))]
 pub struct GenTableColumnEntity {
     pub column_id: Option<i64>,
-    pub table_id: Option<i64>,
+    pub table_id: Option<String>,
     pub column_name: Option<String>,
     pub column_comment: Option<String>,
     pub column_type: Option<String>,

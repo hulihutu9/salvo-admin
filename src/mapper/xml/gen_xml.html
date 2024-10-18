@@ -77,6 +77,15 @@
         AND table_name NOT LIKE 'qrtz\_%' AND table_name NOT LIKE 'gen\_%'`
         ` AND table_name IN ${names}`
     </select>
+    <select id="get_gen_table_columns_by_name">
+        `select COLUMN_NAME,
+        (case when (is_nullable = 'no' and column_key != 'PRI') then '1' else '0' end) as IS_REQUIRED,
+        (case when column_key = 'PRI' then '1' else '0' end) as IS_PK,
+        ordinal_position as SORT, COLUMN_COMMENT,
+        (case when extra = 'auto_increment' then '1' else '0' end) as IS_INCREMENT, COLUMN_TYPE
+        from information_schema.columns where table_schema = (select database()) and table_name = #{table_name}
+        order by ordinal_position`
+    </select>
     <update id="updateGenTable">
         update gen_table
         <set>
@@ -101,19 +110,10 @@
         </set>
         where table_id = #{tableId}
     </update>
-    <delete id="get_gen_table_column_list_by_ids">
+    <select id="get_gen_table_column_list_by_ids">
         select * from gen_table_column where table_id in
         <foreach collection="table_ids" item="item" open="(" separator="," close=")">
             #{item}
         </foreach>
-    </delete>
-    <select id="get_db_table_columns_by_name">
-        `select column_name,
-        (case when (is_nullable = 'no' and column_key != 'PRI') then '1' else '0' end) as is_required,
-        (case when column_key = 'PRI' then '1' else '0' end) as is_pk,
-        ordinal_position as sort, column_comment,
-        (case when extra = 'auto_increment' then '1' else '0' end) as is_increment, column_type
-        from information_schema.columns where table_schema = (select database()) and table_name = (#{tableName})
-        order by ordinal_position`
     </select>
 </mapper>
