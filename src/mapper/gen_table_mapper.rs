@@ -45,6 +45,13 @@ pub async fn del_gen_table_by_id(
     impled!()
 }
 
+#[html_sql("src/mapper/xml/gen_xml.html")]
+pub async fn del_gen_table_column_by_id(
+    rb: &mut dyn Executor,table_id:String
+) ->rbatis::Result<ExecResult> {
+    impled!()
+}
+
 // /preview/{tableId}
 // /download/{tableId}
 // /genCode/{tableId}
@@ -66,7 +73,7 @@ pub async fn get_db_table_count(rb: &mut dyn Executor) -> rbatis::Result<u64> {
 #[html_sql("src/mapper/xml/gen_xml.html")]
 pub async fn get_db_table_by_names(
     rb: &mut dyn Executor, names: String
-) ->rbatis::Result<Vec<DbTableList>> {
+) ->rbatis::Result<Vec<GenTableEntity>> {
     impled!()
 }
 

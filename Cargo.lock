@@ -2306,6 +2306,7 @@ dependencies = [
  "rbdc-mysql",
  "rbs",
  "redis",
+ "regex",
  "salvo",
  "serde",
  "serde_json",

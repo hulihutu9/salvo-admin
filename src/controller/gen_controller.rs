@@ -1,4 +1,4 @@
-use salvo::{oapi::endpoint, Writer};
+use salvo::{oapi::endpoint, Depot, Writer};
 use salvo::oapi::extract::PathParam;
 use salvo::Request;
 use crate::model::common_model::Page;
@@ -71,11 +71,12 @@ pub async fn get_db_table_page(req:&mut Request)->Res<Page<DbTableList>>{
         (status_code = 200,body=ResObj<()>,description ="添加数据表")
     ),
 )]
-pub async fn post_import_tables(req:&mut Request)->Res<()>{
+pub async fn post_import_tables(req:&mut Request,depot:&mut Depot)->Res<()>{
+    let user_id = depot.get::<i32>("userId").copied().unwrap();
     let param = req.query::<String>("tables").unwrap();
     let table_names = format!("('{}')", param.replace(",", "','"));
     // Query tables info in database
-    let table_list = gen_table_service::get_db_table_by_names(table_names)
+    let mut table_list = gen_table_service::get_db_table_by_names(table_names)
         .await.unwrap();
-    match_no_res_ok(gen_table_service::import_tables(table_list).await)
+    match_no_res_ok(gen_table_service::import_tables(user_id, &mut table_list).await)
 }

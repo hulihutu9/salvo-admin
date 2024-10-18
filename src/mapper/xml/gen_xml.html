@@ -43,6 +43,12 @@
             `1 = 1 and table_id in ( ${table_id} )`
         </where>
     </delete>
+    <delete id="del_gen_table_column_by_id">
+        `delete from gen_table_column`
+        <where>
+            `1 = 1 and table_id in ( ${table_id} )`
+        </where>
+    </delete>
     <select id="get_gen_table_list">
         `select * from gen_table`
     </select>

@@ -2,6 +2,7 @@ use serde::{Serialize,Deserialize};
 use rbatis::rbdc::datetime::DateTime;
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
+#[serde(rename_all(deserialize ="SCREAMING_SNAKE_CASE"))]
 pub struct GenTableEntity {
     pub table_id:Option<i64>,
     pub table_name:Option<String>,

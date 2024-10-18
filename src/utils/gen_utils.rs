@@ -1,5 +1,6 @@
 use crate::entity::gen_table_entity::{GenTableColumnEntity, GenTableEntity};
 use crate::utils::common;
+use regex::Regex;
 /**
  * 代码生成通用常量
  *
@@ -263,9 +264,36 @@ pub fn get_column_length(column_type: &str) -> usize {
 pub fn get_db_type(column_type: &str) -> &str
 {
     let index = column_type.find("(").unwrap_or(0);
-    return if index > 0 {
+    if index > 0 {
         &column_type[..index]
     } else {
         column_type
     }
+}
+
+/**
+ * 获取业务名
+ *
+ * @param tableName 表名
+ * @return 业务名
+ */
+pub fn get_business_name(table_name: Option<String>) -> Option<String> {
+    if let Some(table_name) = table_name {
+        if let Some(index) = table_name.find("_") {
+            Some(table_name[index + 1..table_name.len()].to_string())
+        } else { None }
+    } else { None }
+}
+
+/**
+ * 关键字替换
+ *
+ * @param text 需要被替换的名字
+ * @return 替换后的名字
+ */
+pub fn replace_text(text: Option<String>) -> Option<String> {
+    if let Some(text) = text {
+        let re = Regex::new(r"表|若依").unwrap();
+        Some(re.replace(&text, "").to_string())
+    } else { None }
 }
