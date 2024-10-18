@@ -1,6 +1,7 @@
-use crate::entity::gen_table_entity::{GenTableColumnEntity, GenTableEntity};
 use crate::utils::common;
 use regex::Regex;
+use crate::model::gen_table_model::{GenTableAddPayload, GenTableColumnAddPayload};
+
 /**
  * 代码生成通用常量
  *
@@ -150,7 +151,7 @@ pub const QUERY_EQ: &str = "EQ";
 #[allow(dead_code)]
 pub const REQUIRE: &str = "1";
 
-pub fn init_column_field(column: &mut GenTableColumnEntity, table: &GenTableEntity) {
+pub fn init_column_field(column: &mut GenTableColumnAddPayload, table: &GenTableAddPayload) {
     let column_type = column.column_type.clone().unwrap_or("".to_string());
     let column_name_lowercase = column.column_name.clone().unwrap_or("".to_string())
         .to_lowercase();

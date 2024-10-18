@@ -3,7 +3,9 @@ use rbatis::{crud, html_sql};
 use rbatis::rbdc::db::ExecResult;
 use rbatis::rbdc::datetime::DateTime;
 use crate::entity::gen_table_entity::{GenTableEntity, GenTableColumnEntity};
-use crate::model::gen_table_model::{GenTableList, DbTableList, GenTableColumnList};
+use crate::model::gen_table_model::{
+    GenTableList, DbTableList, GenTableColumnList, GenTableAddPayload, GenTableColumnAddPayload
+};
 
 #[html_sql("src/mapper/xml/gen_xml.html")]
 pub async fn get_gen_table_list(rb: &mut dyn Executor) ->rbatis::Result<Vec<GenTableList>> {
@@ -73,7 +75,7 @@ pub async fn get_db_table_count(rb: &mut dyn Executor) -> rbatis::Result<u64> {
 #[html_sql("src/mapper/xml/gen_xml.html")]
 pub async fn get_db_table_by_names(
     rb: &mut dyn Executor, names: String
-) ->rbatis::Result<Vec<GenTableEntity>> {
+) ->rbatis::Result<Vec<GenTableAddPayload>> {
     impled!()
 }
 
@@ -87,9 +89,12 @@ pub async fn get_gen_table_column_list_by_ids(
 #[html_sql("src/mapper/xml/gen_xml.html")]
 pub async fn get_gen_table_columns_by_name(
     rb: &mut dyn Executor, table_name: String
-) ->rbatis::Result<Vec<GenTableColumnEntity>> {
+) ->rbatis::Result<Vec<GenTableColumnAddPayload>> {
     impled!()
 }
 
 crud!(GenTableEntity{},"gen_table");
 crud!(GenTableColumnEntity{},"gen_table_column");
+
+crud!(GenTableAddPayload{},"gen_table");
+crud!(GenTableColumnAddPayload{},"gen_table_column");
