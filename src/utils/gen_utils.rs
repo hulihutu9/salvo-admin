@@ -159,7 +159,7 @@ pub fn init_column_field(column: &mut GenTableColumnAddPayload, table: &GenTable
     let column_name = column_name_lowercase.as_str();
     column.table_id = table.table_id.map(|v| v.to_string());
     column.create_by = table.create_by.clone();
-    column.java_field = Some(common::to_pascal_case(column_name));
+    column.java_field = Some(column_name.to_string());
     // 设置默认字段类型
     column.java_type = Some("String".to_string());
     column.query_type = Some("EQ".to_string());

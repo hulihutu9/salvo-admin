@@ -4,7 +4,9 @@ use crate::entity::sys_user_entity::SysUser;
 use crate::GLOBAL_DB;
 use crate::mapper::gen_table_mapper;
 use crate::model::common_model::Page;
-use crate::model::gen_table_model::{DbTableList, GenTableAddPayload, GenTableColumnAddPayload, GenTableList};
+use crate::model::gen_table_model::{
+    DbTableList, GenTableAddPayload, GenTableColumnAddPayload, GenTableList, TableInfo
+};
 use crate::utils::func::{create_page, create_page_list, is_modify_ok};
 use crate::utils::gen_utils;
 
@@ -42,10 +44,24 @@ pub async fn get_gen_table_page(
     Ok(create_page_list(list,total))
 }
 
-pub async fn get_gen_table_by_id(id:i64)->rbatis::Result<Option<GenTableList>>{
-    let list = gen_table_mapper::get_gen_table_by_id(&mut GLOBAL_DB.clone(),id).await?;
-    let one = list.get(0).cloned();
-    Ok(one)
+pub async fn get_gen_table_by_id(id:String)->rbatis::Result<Option<TableInfo>>{
+    let table = gen_table_mapper::get_gen_table_by_id(
+        &mut GLOBAL_DB.clone(),id.clone()).await?;
+    let table_one = table.get(0).cloned();
+    let tables = gen_table_mapper::get_gen_table_all(
+        &mut GLOBAL_DB.clone()).await?;
+    let list = gen_table_mapper::get_gen_table_column_by_id(
+        &mut GLOBAL_DB.clone(),id).await?;
+
+    let mut  res = None;
+    if table_one.is_some() && list.len() > 0 {
+        res = Some(TableInfo {
+            info: table_one,
+            rows: Some(list),
+            tables: Some(tables),
+        });
+    }
+    Ok(res)
 }
 
 pub async fn del_gen_table_by_id(table_id:String)->rbatis::Result<bool>{

@@ -22,6 +22,16 @@
             `table_id = #{table_id}`
         </where>
     </select>
+    <select id="get_gen_table_all">
+        `SELECT t.table_id, t.table_name, t.table_comment, t.sub_table_name, t.sub_table_fk_name, t.class_name,
+        t.tpl_category, t.package_name, t.module_name, t.business_name, t.function_name,
+        t.function_author, t.options, t.remark,
+        c.column_id, c.column_name, c.column_comment, c.column_type, c.java_type, c.java_field, c.is_pk, c.is_increment,
+        c.is_required, c.is_insert, c.is_edit, c.is_list, c.is_query, c.query_type, c.html_type, c.dict_type, c.sort
+        FROM gen_table t
+        LEFT JOIN gen_table_column c ON t.table_id = c.table_id
+        order by c.sort`
+    </select>
     <select id="get_gen_table_count">
         `select count(*) from gen_table`
         <where>
@@ -121,5 +131,12 @@
         <foreach collection="table_ids" item="item" open="(" separator="," close=")">
             #{item}
         </foreach>
+    </select>
+    <select id="get_gen_table_column_by_id">
+        select column_id, table_id, column_name, column_comment, column_type, java_type, java_field, is_pk, is_increment,
+        is_required, is_insert, is_edit, is_list, is_query, query_type, html_type, dict_type, sort, create_by,
+        create_time, update_by, update_time from gen_table_column
+        where table_id = #{table_id}
+        order by sort
     </select>
 </mapper>
