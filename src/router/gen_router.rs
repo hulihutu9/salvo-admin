@@ -12,5 +12,7 @@ pub fn init_router() ->Router{
         Router::with_path("/tool/gen/db/list").get(gen_controller::get_db_table_page)
     ).push(
         Router::with_path("/tool/gen/importTable").post(gen_controller::post_import_tables)
+    ).push(
+        Router::with_path("/tool/gen").put(gen_controller::put_edit_gen_table)
     )
 }

@@ -1,5 +1,6 @@
 use serde::{Serialize,Deserialize};
 use rbatis::rbdc::datetime::DateTime;
+use crate::model::gen_table_model::GenTableModifyPayload;
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
 pub struct GenTableEntity {
@@ -49,4 +50,31 @@ pub struct GenTableColumnEntity {
     pub create_time: Option<DateTime>,
     pub update_by: Option<String>,
     pub update_time: Option<DateTime>,
+}
+
+impl From<GenTableModifyPayload> for GenTableEntity {
+    fn from(a: GenTableModifyPayload) -> Self {
+        GenTableEntity {
+            table_id: a.table_id,
+            table_name: a.table_name,
+            table_comment: a.table_comment,
+            sub_table_name: a.sub_table_name,
+            sub_table_fk_name: a.sub_table_fk_name,
+            class_name: a.class_name,
+            tpl_category: a.tpl_category,
+            package_name: a.package_name,
+            module_name: a.module_name,
+            business_name: a.business_name,
+            function_name: a.function_name,
+            function_author: a.function_author,
+            gen_type: a.gen_type,
+            gen_path: a.gen_path,
+            options: a.options,
+            create_by: a.create_by,
+            create_time: a.create_time,
+            update_by: a.update_by,
+            update_time: a.update_time,
+            remark: a.remark,
+        }
+    }
 }

@@ -110,3 +110,5 @@ crud!(GenTableColumnEntity{},"gen_table_column");
 
 crud!(GenTableAddPayload{},"gen_table");
 crud!(GenTableColumnAddPayload{},"gen_table_column");
+
+crud!(GenTableColumnList{},"gen_table_column");

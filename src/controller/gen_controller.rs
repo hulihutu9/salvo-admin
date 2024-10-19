@@ -1,9 +1,9 @@
 use salvo::{oapi::endpoint, Depot, Writer};
-use salvo::oapi::extract::PathParam;
+use salvo::oapi::extract::{JsonBody, PathParam};
 use salvo::Request;
 use crate::model::common_model::Page;
 use crate::model::gen_table_model::{
-    GenTableList, GenTableListPayload, DbTableList, TableInfo
+    GenTableList, GenTableListPayload, DbTableList, TableInfo, GenTableModifyPayload
 };
 use crate::service::gen_table_service;
 use crate::utils::res::{match_no_res_ok, match_ok, Res, ResObj};
@@ -38,6 +38,19 @@ pub async fn get_gen_table_page(req:&mut Request)->Res<Page<GenTableList>>{
 )]
 pub async fn get_gen_table_by_id(id: PathParam<String>) ->Res<Option<TableInfo>> {
     match_ok(gen_table_service::get_gen_table_by_id(id.into_inner()).await)
+}
+
+/// 修改岗位
+#[endpoint(
+    tags("代码生成"),
+    responses(
+        (status_code = 200,body=ResObj<()>,description ="修改数据表")
+    ),
+)]
+pub async fn put_edit_gen_table(payload:JsonBody<GenTableModifyPayload>,depot:&mut Depot)->Res<()>{
+    let user_id = depot.get::<i32>("userId").copied().unwrap();
+    let table = payload.into_inner();
+    match_no_res_ok(gen_table_service::put_edit_gen_table(user_id, table).await)
 }
 
 /// 根据表id删除表gen_table行项目

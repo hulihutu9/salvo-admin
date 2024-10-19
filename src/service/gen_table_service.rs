@@ -1,11 +1,13 @@
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::rbdc::db::ExecResult;
+use crate::entity::gen_table_entity::GenTableEntity;
 use crate::entity::sys_user_entity::SysUser;
 use crate::GLOBAL_DB;
 use crate::mapper::gen_table_mapper;
 use crate::model::common_model::Page;
 use crate::model::gen_table_model::{
-    DbTableList, GenTableAddPayload, GenTableColumnAddPayload, GenTableList, TableInfo
+    DbTableList, GenTableAddPayload, GenTableColumnAddPayload, GenTableList, GenTableModifyPayload,
+    TableInfo, GenTableColumnList
 };
 use crate::utils::func::{create_page, create_page_list, is_modify_ok};
 use crate::utils::gen_utils;
@@ -62,6 +64,29 @@ pub async fn get_gen_table_by_id(id:String)->rbatis::Result<Option<TableInfo>>{
         });
     }
     Ok(res)
+}
+
+pub async fn put_edit_gen_table(user_id: i32, table: GenTableModifyPayload)->rbatis::Result<bool>{
+    let user = SysUser::select_by_column(
+        &mut GLOBAL_DB.clone(), "user_id", user_id).await?;
+    let user = user.get(0).unwrap();
+    let columns = table.columns.clone().unwrap();
+    let mut gen_table: GenTableEntity = table.into();
+    gen_table.update_by = Some(user.user_name.clone());
+    gen_table.update_time = Some(DateTime::now());
+
+    // update gen_table
+    let rows = GenTableEntity::update_by_column(
+        &mut GLOBAL_DB.clone(),&gen_table,"table_id").await?;
+
+    // update gen_table_column
+    if rows.rows_affected.clone() > 0 {
+        for column in columns.iter() {
+            GenTableColumnList::update_by_column(
+                &mut GLOBAL_DB.clone(),&column,"column_id").await?;
+        }
+    }
+    Ok(is_modify_ok(rows.rows_affected))
 }
 
 pub async fn del_gen_table_by_id(table_id:String)->rbatis::Result<bool>{

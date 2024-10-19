@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub fn to_pascal_case(s: &str) -> String {
     let mut result= String::new();
     let mut capitalize_next_char = true;
