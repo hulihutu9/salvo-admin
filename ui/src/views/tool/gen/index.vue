@@ -144,8 +144,8 @@
       <el-tabs v-model="preview.activeName">
         <el-tab-pane
           v-for="(value, key) in preview.data"
-          :label="key.substring(key.lastIndexOf('/')+1,key.indexOf('.vm'))"
-          :name="key.substring(key.lastIndexOf('/')+1,key.indexOf('.vm'))"
+          :label="key.substring(key.lastIndexOf('/')+1,key.indexOf('.hbs'))"
+          :name="key.substring(key.lastIndexOf('/')+1,key.indexOf('.hbs'))"
           :key="value"
         >
           <el-link :underline="false" icon="DocumentCopy" v-copyText="value" v-copyText:callback="copyTextSuccess" style="float:right">&nbsp;复制</el-link>
@@ -158,7 +158,7 @@
 </template>
 
 <script setup name="Gen">
-import { listTable, previewTable, delTable, genCode, synchDb } from "@/api/tool/gen";
+import {delTable, genCode, listTable, previewTable, synchDb} from "@/api/tool/gen";
 import router from "@/router";
 import importTable from "./importTable";
 
@@ -187,7 +187,7 @@ const data = reactive({
     open: false,
     title: "代码预览",
     data: {},
-    activeName: "domain.java"
+    activeName: "README.md"
   }
 });
 
@@ -257,7 +257,7 @@ function handlePreview(row) {
   previewTable(row.tableId).then(response => {
     preview.value.data = response.data;
     preview.value.open = true;
-    preview.value.activeName = "domain.java";
+    preview.value.activeName = "README.md";
   });
 }
 /** 复制代码成功 */

@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::rbdc::db::ExecResult;
 use crate::entity::gen_table_entity::GenTableEntity;
@@ -108,7 +109,7 @@ pub async fn get_db_table_page(page_num:u64,page_size:u64) ->rbatis::Result<Page
 
 // query tables info by table name
 // return: tables info vector
-pub async fn get_db_table_by_names(names: String) -> rbatis::Result<Vec<GenTableAddPayload>> {
+pub async fn get_db_table_by_names(names: Vec<&str>) -> rbatis::Result<Vec<GenTableAddPayload>> {
     Ok(gen_table_mapper::get_db_table_by_names(&mut GLOBAL_DB.clone(),names).await?)
 }
 
@@ -140,4 +141,36 @@ pub async fn import_tables(user_id: i32, table_list: &mut Vec<GenTableAddPayload
     }
 
     Ok(is_modify_ok(rows.rows_affected))
+}
+
+pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,String>>>{
+    let tables = gen_table_mapper::get_gen_table_by_id(
+        &mut GLOBAL_DB.clone(),id.clone()).await?;
+    let table = tables.get(0).unwrap();
+
+    // get sub table info
+    let sub_table_name = table.table_name.clone();
+    let mut sub_table = None;
+    if let Some(sub_table_name) = sub_table_name {
+        sub_table = gen_table_mapper::get_db_table_by_names(
+            &mut GLOBAL_DB.clone(),vec![&sub_table_name]).await?.get(0);
+    }
+
+    // get primary key column info
+    let mut pk_column = None;
+    let list = gen_table_mapper::get_gen_table_column_by_id(
+        &mut GLOBAL_DB.clone(),id).await?;
+    for column in list.iter() {
+        if column.is_pk == Some("1".to_string()) {
+            pk_column = Some(column);
+            break;
+        }
+    }
+
+    // render template
+    let context = gen_utils::prepare_context();
+    let templates = gen_utils::get_template_list();
+    let res = gen_utils::render_template(context, templates);
+
+    Ok(Some(res))
 }

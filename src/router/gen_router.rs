@@ -14,5 +14,7 @@ pub fn init_router() ->Router{
         Router::with_path("/tool/gen/importTable").post(gen_controller::post_import_tables)
     ).push(
         Router::with_path("/tool/gen").put(gen_controller::put_edit_gen_table)
+    ).push(
+        Router::with_path("/tool/gen/preview/<id>").get(gen_controller::get_preview_code)
     )
 }

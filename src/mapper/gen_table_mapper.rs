@@ -86,7 +86,7 @@ pub async fn get_db_table_count(rb: &mut dyn Executor) -> rbatis::Result<u64> {
 
 #[html_sql("src/mapper/xml/gen_xml.html")]
 pub async fn get_db_table_by_names(
-    rb: &mut dyn Executor, names: String
+    rb: &mut dyn Executor, names: Vec<&str>
 ) ->rbatis::Result<Vec<GenTableAddPayload>> {
     impled!()
 }

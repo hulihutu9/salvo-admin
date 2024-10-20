@@ -90,8 +90,11 @@
     <select id="get_db_table_by_names">
         `select table_name, table_comment, create_time, update_time from information_schema.tables
         where table_schema = (select database())
-        AND table_name NOT LIKE 'qrtz\_%' AND table_name NOT LIKE 'gen\_%'`
-        ` AND table_name IN ${names}`
+        AND table_name NOT LIKE 'qrtz\_%' AND table_name NOT LIKE 'gen\_%'
+        AND table_name IN `
+        <foreach collection="names" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
     </select>
     <select id="get_gen_table_columns_by_name">
         `select COLUMN_NAME,

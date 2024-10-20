@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+use handlebars::Handlebars;
 use crate::utils::common;
 use regex::Regex;
 use crate::model::gen_table_model::{GenTableAddPayload, GenTableColumnAddPayload};
@@ -297,4 +299,36 @@ pub fn replace_text(text: Option<String>) -> Option<String> {
         let re = Regex::new(r"表|若依").unwrap();
         Some(re.replace(&text, "").to_string())
     } else { None }
+}
+
+// set template context
+pub fn prepare_context() -> BTreeMap<String, String> {
+    let mut context = BTreeMap::new();
+    context.insert("world".to_string(), "世界!".to_string());
+
+    context
+}
+
+// get template
+pub fn get_template_list() -> Vec<String> {
+    let path = "./template/";
+    let mut list = vec![];
+    list.push(path.to_string() +"README.md.hbs");
+
+    list
+}
+
+// render template list
+pub fn render_template(
+    context: BTreeMap<String, String>, list: Vec<String>
+) -> BTreeMap<String, String> {
+    let mut handlebars = Handlebars::new();
+    let mut res = BTreeMap::new();
+
+    for file_name in list.iter() {
+        handlebars.register_template_file("template", file_name).unwrap();
+        let output = handlebars.render("template", &context).unwrap();
+        res.insert(file_name.to_string(), output);
+    }
+    res
 }

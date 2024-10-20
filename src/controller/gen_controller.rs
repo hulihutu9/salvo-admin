@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use salvo::{oapi::endpoint, Depot, Writer};
 use salvo::oapi::extract::{JsonBody, PathParam};
 use salvo::Request;
@@ -89,9 +90,20 @@ pub async fn get_db_table_page(req:&mut Request)->Res<Page<DbTableList>>{
 pub async fn post_import_tables(req:&mut Request,depot:&mut Depot)->Res<()>{
     let user_id = depot.get::<i32>("userId").copied().unwrap();
     let param = req.query::<String>("tables").unwrap();
-    let table_names = format!("('{}')", param.replace(",", "','"));
+    let table_names: Vec<&str> = param.split(",").collect();
     // Query tables info in database
     let mut table_list = gen_table_service::get_db_table_by_names(table_names)
         .await.unwrap();
     match_no_res_ok(gen_table_service::import_tables(user_id, &mut table_list).await)
+}
+
+/// 根据表id获取表gen_table行项目
+#[endpoint(
+    tags("代码生成"),
+    responses(
+        (status_code = 200,body=ResObj<Option<TableInfo>>,description ="预览代码")
+    ),
+)]
+pub async fn get_preview_code(id: PathParam<String>) ->Res<Option<BTreeMap<String,String>>> {
+    match_ok(gen_table_service::get_preview_code(id.into_inner()).await)
 }
