@@ -1,8 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
+use serde_json::value::{self, Map, Value as Json};
 use handlebars::Handlebars;
 use crate::utils::common;
 use regex::Regex;
-use crate::model::gen_table_model::{GenTableAddPayload, GenTableColumnAddPayload};
+use crate::model::gen_table_model::{
+    DbTableList, DbTableColumnList
+};
 
 /**
  * 代码生成通用常量
@@ -153,7 +156,7 @@ pub const QUERY_EQ: &str = "EQ";
 #[allow(dead_code)]
 pub const REQUIRE: &str = "1";
 
-pub fn init_column_field(column: &mut GenTableColumnAddPayload, table: &GenTableAddPayload) {
+pub fn init_column_field(column: &mut DbTableColumnList, table: &DbTableList) {
     let column_type = column.column_type.clone().unwrap_or("".to_string());
     let column_name_lowercase = column.column_name.clone().unwrap_or("".to_string())
         .to_lowercase();
@@ -301,29 +304,21 @@ pub fn replace_text(text: Option<String>) -> Option<String> {
     } else { None }
 }
 
-// set template context
-pub fn prepare_context() -> BTreeMap<String, String> {
-    let mut context = BTreeMap::new();
-    context.insert("world".to_string(), "世界!".to_string());
-
-    context
-}
-
 // get template
 pub fn get_template_list() -> Vec<String> {
     let path = "./template/";
-    let mut list = vec![];
-    list.push(path.to_string() +"README.md.hbs");
 
-    list
+    vec!["README.md.hbs", "entity.rs.hbs", "model.rs.hbs", "router.rs.hbs", "controller.rs.hbs",
+         "service.rs.hbs", "mapper.rs.hbs", "xml.html.hbs"]
+        .iter().map(|s| path.to_owned() + s).collect::<Vec<String>>()
 }
 
 // render template list
 pub fn render_template(
-    context: BTreeMap<String, String>, list: Vec<String>
-) -> BTreeMap<String, String> {
+    context: Map<String, Json>, list: Vec<String>
+) -> HashMap<String, String> {
     let mut handlebars = Handlebars::new();
-    let mut res = BTreeMap::new();
+    let mut res = HashMap::new();
 
     for file_name in list.iter() {
         handlebars.register_template_file("template", file_name).unwrap();

@@ -1,4 +1,6 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
+use handlebars::to_json;
+use serde_json::value::Map;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::rbdc::db::ExecResult;
 use crate::entity::gen_table_entity::GenTableEntity;
@@ -7,7 +9,7 @@ use crate::GLOBAL_DB;
 use crate::mapper::gen_table_mapper;
 use crate::model::common_model::Page;
 use crate::model::gen_table_model::{
-    DbTableList, GenTableAddPayload, GenTableColumnAddPayload, GenTableList, GenTableModifyPayload,
+    DbTableList, DbTableColumnList, GenTableList, GenTableModifyPayload,
     TableInfo, GenTableColumnList
 };
 use crate::utils::func::{create_page, create_page_list, is_modify_ok};
@@ -109,11 +111,11 @@ pub async fn get_db_table_page(page_num:u64,page_size:u64) ->rbatis::Result<Page
 
 // query tables info by table name
 // return: tables info vector
-pub async fn get_db_table_by_names(names: Vec<&str>) -> rbatis::Result<Vec<GenTableAddPayload>> {
+pub async fn get_db_table_by_names(names: Vec<&str>) -> rbatis::Result<Vec<DbTableList>> {
     Ok(gen_table_mapper::get_db_table_by_names(&mut GLOBAL_DB.clone(),names).await?)
 }
 
-pub async fn import_tables(user_id: i32, table_list: &mut Vec<GenTableAddPayload>)
+pub async fn import_tables(user_id: i32, table_list: &mut Vec<DbTableList>)
     ->rbatis::Result<bool> {
     let mut rows = ExecResult{rows_affected: 0, last_insert_id: rbs::to_value!(0)};
     let user = SysUser::select_by_column(
@@ -126,7 +128,7 @@ pub async fn import_tables(user_id: i32, table_list: &mut Vec<GenTableAddPayload
         table.function_name = gen_utils::replace_text(table.table_comment.clone());
         table.create_by = Some(user.user_name.clone());
 
-        rows = GenTableAddPayload::insert(&mut GLOBAL_DB.clone(), table).await?;
+        rows = DbTableList::insert(&mut GLOBAL_DB.clone(), table).await?;
 
         // insert table "gen_table_column"
         if rows.rows_affected > 0 {
@@ -135,7 +137,7 @@ pub async fn import_tables(user_id: i32, table_list: &mut Vec<GenTableAddPayload
                 &mut GLOBAL_DB.clone(), table.table_name.clone().unwrap()).await?;
             for column in gen_table_columns.iter_mut() {
                 gen_utils::init_column_field(column, &table);
-                rows = GenTableColumnAddPayload::insert(&mut GLOBAL_DB.clone(),&column).await?;
+                rows = DbTableColumnList::insert(&mut GLOBAL_DB.clone(), &column).await?;
             }
         }
     }
@@ -143,21 +145,22 @@ pub async fn import_tables(user_id: i32, table_list: &mut Vec<GenTableAddPayload
     Ok(is_modify_ok(rows.rows_affected))
 }
 
-pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,String>>>{
+pub async fn get_preview_code(id:String)->rbatis::Result<Option<HashMap<String,String>>>{
     let tables = gen_table_mapper::get_gen_table_by_id(
         &mut GLOBAL_DB.clone(),id.clone()).await?;
     let table = tables.get(0).unwrap();
 
     // get sub table info
     let sub_table_name = table.table_name.clone();
-    let mut sub_table = None;
+    let mut sub_table: Option<DbTableList> = None;
     if let Some(sub_table_name) = sub_table_name {
-        sub_table = gen_table_mapper::get_db_table_by_names(
-            &mut GLOBAL_DB.clone(),vec![&sub_table_name]).await?.get(0);
+        let sub_tables = gen_table_mapper::get_db_table_by_names(
+            &mut GLOBAL_DB.clone(),vec![&sub_table_name]).await?;
+        sub_table = sub_tables.get(0).cloned();
     }
 
     // get primary key column info
-    let mut pk_column = None;
+    let mut pk_column: Option<&GenTableColumnList> = None;
     let list = gen_table_mapper::get_gen_table_column_by_id(
         &mut GLOBAL_DB.clone(),id).await?;
     for column in list.iter() {
@@ -167,8 +170,16 @@ pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,
         }
     }
 
+    // set template context
+    let mut context = Map::new();
+    context.insert("world".to_string(), to_json("世界!"));
+    context.insert("table_name".to_string(), to_json(table.table_name.clone().unwrap()));
+    context.insert("class_name".to_string(), to_json(table.class_name.clone().unwrap()));
+    context.insert("module_name".to_string(), to_json(&table.module_name.clone().unwrap()));
+    context.insert("business_name".to_string(), to_json(table.business_name.clone().unwrap()));
+    context.insert("function_name".to_string(), to_json(table.function_name.clone().unwrap()));
+
     // render template
-    let context = gen_utils::prepare_context();
     let templates = gen_utils::get_template_list();
     let res = gen_utils::render_template(context, templates);
 
