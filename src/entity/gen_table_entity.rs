@@ -2,7 +2,7 @@ use serde::{Serialize,Deserialize};
 use rbatis::rbdc::datetime::DateTime;
 use crate::model::gen_table_model::GenTableModifyPayload;
 
-#[derive(Debug,Serialize,Deserialize,Clone)]
+#[derive(Debug,Serialize,Deserialize,Clone, Default)]
 pub struct GenTableEntity {
     pub table_id:Option<i64>,
     pub table_name:Option<String>,
@@ -26,7 +26,7 @@ pub struct GenTableEntity {
     pub remark:Option<String>,
 }
 
-#[derive(Debug,Serialize,Deserialize,Clone)]
+#[derive(Debug,Serialize,Deserialize,Clone, Default)]
 pub struct GenTableColumnEntity {
     pub column_id: Option<i64>,
     pub table_id: Option<String>,

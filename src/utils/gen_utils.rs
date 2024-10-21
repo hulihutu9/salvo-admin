@@ -1,10 +1,11 @@
 use std::collections::HashMap;
-use serde_json::value::{self, Map, Value as Json};
+use serde_json::value::{Map, Value as Json};
 use handlebars::Handlebars;
 use crate::utils::common;
 use regex::Regex;
+use crate::entity::gen_table_entity::{GenTableColumnEntity, GenTableEntity};
 use crate::model::gen_table_model::{
-    DbTableList, DbTableColumnList
+    GenTableList, GenTableColumnList
 };
 
 /**
@@ -156,9 +157,12 @@ pub const QUERY_EQ: &str = "EQ";
 #[allow(dead_code)]
 pub const REQUIRE: &str = "1";
 
-pub fn init_column_field(column: &mut DbTableColumnList, table: &DbTableList) {
-    let column_type = column.column_type.clone().unwrap_or("".to_string());
-    let column_name_lowercase = column.column_name.clone().unwrap_or("".to_string())
+pub fn init_column_field(
+    column_info: &mut DbTableColumnList, table: &GenTableEntity
+) -> GenTableColumnEntity {
+    let mut column: GenTableColumnEntity = Default::default();
+    let column_type = column_info.column_type.clone().unwrap_or("".to_string());
+    let column_name_lowercase = column_info.column_name.clone().unwrap_or("".to_string())
         .to_lowercase();
     let data_type = get_db_type(column_type.as_str());
     let column_name = column_name_lowercase.as_str();

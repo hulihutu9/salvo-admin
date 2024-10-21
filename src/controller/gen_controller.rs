@@ -1,10 +1,10 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use salvo::{oapi::endpoint, Depot, Writer};
 use salvo::oapi::extract::{JsonBody, PathParam};
 use salvo::Request;
 use crate::model::common_model::Page;
 use crate::model::gen_table_model::{
-    GenTableList, GenTableListPayload, DbTableList, TableInfo, GenTableModifyPayload
+    GenTableList, GenTableListPayload, TableInfo, GenTableModifyPayload
 };
 use crate::service::gen_table_service;
 use crate::utils::res::{match_no_res_ok, match_ok, Res, ResObj};
@@ -75,7 +75,7 @@ pub async fn del_gen_table_by_id(id: PathParam<String>)->Res<()>{
         (status_code = 200,body=ResObj<Page<GenTableList>>,description ="数据库列表")
     ),
 )]
-pub async fn get_db_table_page(req:&mut Request)->Res<Page<DbTableList>>{
+pub async fn get_db_table_page(req:&mut Request)->Res<Page<GenTableList>>{
     let payload:GenTableListPayload = req.parse_queries().unwrap();
     match_ok(gen_table_service::get_db_table_page(payload.page_num,payload.page_size).await)
 }
@@ -91,10 +91,8 @@ pub async fn post_import_tables(req:&mut Request,depot:&mut Depot)->Res<()>{
     let user_id = depot.get::<i32>("userId").copied().unwrap();
     let param = req.query::<String>("tables").unwrap();
     let table_names: Vec<&str> = param.split(",").collect();
-    // Query tables info in database
-    let mut table_list = gen_table_service::get_db_table_by_names(table_names)
-        .await.unwrap();
-    match_no_res_ok(gen_table_service::import_tables(user_id, &mut table_list).await)
+
+    match_no_res_ok(gen_table_service::import_tables(user_id, table_names).await)
 }
 
 /// 根据表id获取表gen_table行项目
@@ -104,6 +102,6 @@ pub async fn post_import_tables(req:&mut Request,depot:&mut Depot)->Res<()>{
         (status_code = 200,body=ResObj<Option<TableInfo>>,description ="预览代码")
     ),
 )]
-pub async fn get_preview_code(id: PathParam<String>) ->Res<Option<BTreeMap<String,String>>> {
+pub async fn get_preview_code(id: PathParam<String>) ->Res<Option<HashMap<String,String>>> {
     match_ok(gen_table_service::get_preview_code(id.into_inner()).await)
 }

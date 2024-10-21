@@ -2,7 +2,7 @@ use serde::{Serialize,Deserialize};
 use rbatis::rbdc::datetime::DateTime;
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
-pub struct SysPostEntity{
+pub struct {{class_name}}Entity{
     pub post_id:Option<i64>,
     pub post_code:Option<String>,
     pub post_name:Option<String>,

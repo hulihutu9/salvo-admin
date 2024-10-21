@@ -96,7 +96,7 @@
             #{item}
         </foreach>
     </select>
-    <select id="get_gen_table_columns_by_name">
+    <select id="get_db_table_columns_by_name">
         `select COLUMN_NAME,
         (case when (is_nullable = 'no' and column_key != 'PRI') then '1' else '0' end) as IS_REQUIRED,
         (case when column_key = 'PRI' then '1' else '0' end) as IS_PK,
