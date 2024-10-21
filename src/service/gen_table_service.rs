@@ -9,11 +9,11 @@ use crate::GLOBAL_DB;
 use crate::mapper::gen_table_mapper;
 use crate::model::common_model::Page;
 use crate::model::gen_table_model::{
-    GenTableList, GenTableColumnList, GenTableModifyPayload, TableInfo
+    GenTableList, GenTableColumnList, GenTableModifyPayload, TableInfo, DbTableList
 };
-use crate::service::gen_table_service;
 use crate::utils::func::{create_page, create_page_list, is_modify_ok};
 use crate::utils::gen_utils;
+use crate::utils::common;
 
 // query table "gen_table"
 // return: list "gen_table" rows of page "page_num"
@@ -22,26 +22,9 @@ pub async fn get_gen_table_page(
     table_comment:Option<String>,begin_time:Option<DateTime>
 ) ->rbatis::Result<Page<GenTableList>>{
     let (num,size) = create_page(page_num,page_size);
-    let mut list = gen_table_mapper::get_gen_table_page(
+    let list = gen_table_mapper::get_gen_table_page(
         &mut GLOBAL_DB.clone(),num,size,table_name.clone(),table_comment.clone(),begin_time.clone()
     ).await?;
-
-    if !list.is_empty() {
-        // get table "gen_column" rows
-        let table_ids: Vec<String> = list.iter().map(|row|
-            row.table_id.unwrap_or(-1).to_string()).collect();
-        let columns = gen_table_mapper::get_gen_table_column_list_by_ids(
-            &mut GLOBAL_DB.clone(), table_ids
-        ).await?;
-
-        // set rows to GenTableList
-        for gen_table in list.iter_mut() {
-            let id = gen_table.table_id.map(|v| v.to_string());
-            let res = columns.iter().find(|&row|
-                row.table_id == id).cloned();
-            gen_table.columns = res;
-        }
-    }
 
     let total = gen_table_mapper::get_gen_table_count(
         &mut GLOBAL_DB.clone(),table_name,table_comment,begin_time.clone()
@@ -101,7 +84,7 @@ pub async fn del_gen_table_by_id(table_id:String)->rbatis::Result<bool>{
 
 // query all tables info in database
 // return: list tables info of page "page_num"
-pub async fn get_db_table_page(page_num:u64,page_size:u64) ->rbatis::Result<Page<GenTableList>>{
+pub async fn get_db_table_page(page_num:u64,page_size:u64) ->rbatis::Result<Page<DbTableList>>{
     let (num,size) = create_page(page_num,page_size);
     let list = gen_table_mapper::get_db_table_page(
         &mut GLOBAL_DB.clone(),num,size).await?;
@@ -111,7 +94,7 @@ pub async fn get_db_table_page(page_num:u64,page_size:u64) ->rbatis::Result<Page
 
 // query tables info by table name
 // return: tables info vector
-pub async fn get_db_table_by_names(names: Vec<&str>) -> rbatis::Result<Vec<GenTableList>> {
+pub async fn get_db_table_by_names(names: Vec<&str>) -> rbatis::Result<Vec<DbTableList>> {
     Ok(gen_table_mapper::get_db_table_by_names(&mut GLOBAL_DB.clone(),names).await?)
 }
 
@@ -123,24 +106,26 @@ pub async fn import_tables(user_id: i32, table_names: Vec<&str>)
     let user = user.get(0).unwrap();
 
     // Query tables info in database
-    let mut table_list = gen_table_service::get_db_table_by_names(table_names)
+    let table_list = get_db_table_by_names(table_names)
         .await?;
 
-    for table_info in table_list.iter_mut() {
-        let mut table : GenTableEntity = Default::default();
-        table.class_name = table_info.table_name.clone();
+    for table_info in table_list.iter() {
+        let mut table: GenTableEntity = (*table_info).clone().into();
+        table.class_name = Some(common::to_pascal_case(&table_info.table_name.clone().unwrap()));
         table.business_name = gen_utils::get_business_name(table_info.table_name.clone());
         table.function_name = gen_utils::replace_text(table_info.table_comment.clone());
         table.create_by = Some(user.user_name.clone());
-
+        table.function_author = Some(user.user_name.clone());
+        table.package_name = Some("system".to_string());
+        table.module_name = Some("system".to_string());
         rows = GenTableEntity::insert(&mut GLOBAL_DB.clone(), &table).await?;
 
         // insert table "gen_table_column"
         if rows.rows_affected > 0 {
             table.table_id = Some(rbs::from_value(rows.last_insert_id)?);
-            let mut db_table_columns = gen_table_mapper::get_db_table_columns_by_name(
+            let db_table_columns = gen_table_mapper::get_db_table_columns_by_name(
                 &mut GLOBAL_DB.clone(), table.table_name.clone().unwrap()).await?;
-            for column_info in db_table_columns.iter_mut() {
+            for column_info in db_table_columns.iter() {
                 let column = gen_utils::init_column_field(column_info, &table);
                 rows = GenTableColumnEntity::insert(&mut GLOBAL_DB.clone(), &column).await?;
             }
@@ -156,11 +141,11 @@ pub async fn get_preview_code(id:String)->rbatis::Result<Option<HashMap<String,S
     let table = tables.get(0).unwrap();
 
     // get sub table info
-    let sub_table_name = table.table_name.clone();
+    let sub_table_name = table.sub_table_name.clone();
     let mut sub_table: Option<GenTableList> = None;
-    if let Some(sub_table_name) = sub_table_name {
-        let sub_tables = gen_table_mapper::get_db_table_by_names(
-            &mut GLOBAL_DB.clone(),vec![&sub_table_name]).await?;
+    if let Some(table_name) = sub_table_name {
+        let sub_tables = gen_table_mapper::get_gen_table_by_name(
+            &mut GLOBAL_DB.clone(),table_name).await?;
         sub_table = sub_tables.get(0).cloned();
     }
 

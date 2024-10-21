@@ -4,9 +4,7 @@ use handlebars::Handlebars;
 use crate::utils::common;
 use regex::Regex;
 use crate::entity::gen_table_entity::{GenTableColumnEntity, GenTableEntity};
-use crate::model::gen_table_model::{
-    GenTableList, GenTableColumnList
-};
+use crate::model::gen_table_model::{DbTableColumnList};
 
 /**
  * 代码生成通用常量
@@ -158,9 +156,9 @@ pub const QUERY_EQ: &str = "EQ";
 pub const REQUIRE: &str = "1";
 
 pub fn init_column_field(
-    column_info: &mut DbTableColumnList, table: &GenTableEntity
+    column_info: &DbTableColumnList, table: &GenTableEntity
 ) -> GenTableColumnEntity {
-    let mut column: GenTableColumnEntity = Default::default();
+    let mut column: GenTableColumnEntity = (*column_info).clone().into();
     let column_type = column_info.column_type.clone().unwrap_or("".to_string());
     let column_name_lowercase = column_info.column_name.clone().unwrap_or("".to_string())
         .to_lowercase();
@@ -246,6 +244,7 @@ pub fn init_column_field(
     else if column_name.ends_with("content") {
         column.html_type = Some(HTML_EDITOR.to_string());
     }
+    column
 }
 
 /**

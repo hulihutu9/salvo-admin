@@ -1,7 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
 <mapper>
     <select id="get_gen_table_page">
-        `select * from gen_table`
+        `select table_id, table_name, table_comment, sub_table_name, sub_table_fk_name, class_name,
+        tpl_category, package_name, module_name, business_name, function_name,
+        function_author, gen_type, gen_path, options, create_by, create_time, update_by, update_time,
+        remark from gen_table`
         <where>
             1 = 1
             <if test="table_name != '' && table_name != null">
@@ -17,9 +20,21 @@
         </where>
     </select>
     <select id="get_gen_table_by_id">
-        `select * from gen_table`
+        `select table_id, table_name, table_comment, sub_table_name, sub_table_fk_name, class_name,
+        tpl_category, package_name, module_name, business_name, function_name,
+        function_author, gen_type, gen_path, options, create_by, create_time, update_by, update_time,
+        remark from gen_table`
         <where>
             `table_id = #{table_id}`
+        </where>
+    </select>
+    <select id="get_gen_table_by_name">
+        `select table_id, table_name, table_comment, sub_table_name, sub_table_fk_name, class_name,
+        tpl_category, package_name, module_name, business_name, function_name,
+        function_author, gen_type, gen_path, options, create_by, create_time, update_by, update_time,
+        remark from gen_table`
+        <where>
+            `table_name = #{table_name}`
         </where>
     </select>
     <select id="get_gen_table_all">

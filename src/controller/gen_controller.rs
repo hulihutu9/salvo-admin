@@ -4,7 +4,7 @@ use salvo::oapi::extract::{JsonBody, PathParam};
 use salvo::Request;
 use crate::model::common_model::Page;
 use crate::model::gen_table_model::{
-    GenTableList, GenTableListPayload, TableInfo, GenTableModifyPayload
+    GenTableList, GenTableListPayload, TableInfo, GenTableModifyPayload, DbTableList
 };
 use crate::service::gen_table_service;
 use crate::utils::res::{match_no_res_ok, match_ok, Res, ResObj};
@@ -75,7 +75,7 @@ pub async fn del_gen_table_by_id(id: PathParam<String>)->Res<()>{
         (status_code = 200,body=ResObj<Page<GenTableList>>,description ="数据库列表")
     ),
 )]
-pub async fn get_db_table_page(req:&mut Request)->Res<Page<GenTableList>>{
+pub async fn get_db_table_page(req:&mut Request)->Res<Page<DbTableList>>{
     let payload:GenTableListPayload = req.parse_queries().unwrap();
     match_ok(gen_table_service::get_db_table_page(payload.page_num,payload.page_size).await)
 }

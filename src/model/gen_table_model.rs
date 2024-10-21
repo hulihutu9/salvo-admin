@@ -4,7 +4,7 @@ use salvo::oapi::{ToParameters, ToSchema};
 
 #[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
 #[salvo(schema(rename_all="camelCase"))]
-#[serde(rename_all(serialize="camelCase", deserialize ="SCREAMING_SNAKE_CASE"))]
+#[serde(rename_all(serialize="camelCase"))]
 pub struct GenTableList {
     pub table_id:Option<i64>,
     pub table_name:Option<String>,
@@ -26,12 +26,11 @@ pub struct GenTableList {
     pub update_by:Option<String>,
     pub update_time:Option<DateTime>,
     pub remark:Option<String>,
-    pub columns:Option<GenTableColumnList>,
 }
 
 #[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
 #[salvo(schema(rename_all="camelCase"))]
-#[serde(rename_all(serialize="camelCase", deserialize ="SCREAMING_SNAKE_CASE"))]
+#[serde(rename_all(serialize="camelCase"))]
 pub struct GenTableColumnList {
     pub column_id: Option<i64>,
     pub table_id: Option<String>,
@@ -105,8 +104,8 @@ pub struct TableInfo {
     pub tables: Option<Vec<GenTableList>>,
 }
 
-#[derive(Debug,Serialize,Deserialize,Clone)]
-#[serde(rename_all(deserialize ="SCREAMING_SNAKE_CASE"))]
+#[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
+#[serde(rename_all(serialize="camelCase",deserialize ="SCREAMING_SNAKE_CASE"))]
 pub struct DbTableList {
     pub table_name:Option<String>,
     pub table_comment:Option<String>,
@@ -114,8 +113,8 @@ pub struct DbTableList {
     pub update_time:Option<DateTime>,
 }
 
-#[derive(Debug,Serialize,Deserialize,Clone)]
-#[serde(rename_all(deserialize ="SCREAMING_SNAKE_CASE"))]
+#[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
+#[serde(rename_all(serialize="camelCase",deserialize ="SCREAMING_SNAKE_CASE"))]
 pub struct DbTableColumnList {
     pub column_name: Option<String>,
     pub column_comment: Option<String>,
