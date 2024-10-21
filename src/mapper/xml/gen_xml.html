@@ -78,7 +78,8 @@
         `select * from gen_table`
     </select>
     <select id="get_db_table_page">
-        `select table_name, table_comment, create_time, update_time from information_schema.tables
+        `select table_name as table_name, table_comment as table_comment, create_time as create_time,
+        update_time as update_time from information_schema.tables
         where table_schema = (select database())
         AND table_name NOT LIKE 'qrtz\_%' AND table_name NOT LIKE 'gen\_%'
         AND table_name NOT IN (select table_name from gen_table)`
@@ -103,7 +104,8 @@
         </if>
     </select>
     <select id="get_db_table_by_names">
-        `select table_name, table_comment, create_time, update_time from information_schema.tables
+        `select table_name as table_name, table_comment as table_comment, create_time as create_time,
+        update_time as update_time from information_schema.tables
         where table_schema = (select database())
         AND table_name NOT LIKE 'qrtz\_%' AND table_name NOT LIKE 'gen\_%'
         AND table_name IN `
@@ -112,38 +114,14 @@
         </foreach>
     </select>
     <select id="get_db_table_columns_by_name">
-        `select COLUMN_NAME,
-        (case when (is_nullable = 'no' and column_key != 'PRI') then '1' else '0' end) as IS_REQUIRED,
-        (case when column_key = 'PRI' then '1' else '0' end) as IS_PK,
-        ordinal_position as SORT, COLUMN_COMMENT,
-        (case when extra = 'auto_increment' then '1' else '0' end) as IS_INCREMENT, COLUMN_TYPE
+        `select column_name as column_name,
+        (case when (is_nullable = 'no' and column_key != 'PRI') then '1' else '0' end) as is_required,
+        (case when column_key = 'PRI' then '1' else '0' end) as is_pk,
+        ordinal_position as sort, column_comment as column_comment,
+        (case when extra = 'auto_increment' then '1' else '0' end) as is_increment, column_type as column_type
         from information_schema.columns where table_schema = (select database()) and table_name = #{table_name}
         order by ordinal_position`
     </select>
-    <update id="updateGenTable">
-        update gen_table
-        <set>
-            <if test="tableName != null">table_name = #{tableName},</if>
-            <if test="tableComment != null and tableComment != ''">table_comment = #{tableComment},</if>
-            <if test="subTableName != null">sub_table_name = #{subTableName},</if>
-            <if test="subTableFkName != null">sub_table_fk_name = #{subTableFkName},</if>
-            <if test="className != null and className != ''">class_name = #{className},</if>
-            <if test="functionAuthor != null and functionAuthor != ''">function_author = #{functionAuthor},</if>
-            <if test="genType != null and genType != ''">gen_type = #{genType},</if>
-            <if test="genPath != null and genPath != ''">gen_path = #{genPath},</if>
-            <if test="tplCategory != null and tplCategory != ''">tpl_category = #{tplCategory},</if>
-            <if test="tplWebType != null and tplWebType != ''">tpl_web_type = #{tplWebType},</if>
-            <if test="packageName != null and packageName != ''">package_name = #{packageName},</if>
-            <if test="moduleName != null and moduleName != ''">module_name = #{moduleName},</if>
-            <if test="businessName != null and businessName != ''">business_name = #{businessName},</if>
-            <if test="functionName != null and functionName != ''">function_name = #{functionName},</if>
-            <if test="options != null and options != ''">options = #{options},</if>
-            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
-            <if test="remark != null">remark = #{remark},</if>
-            update_time = sysdate()
-        </set>
-        where table_id = #{tableId}
-    </update>
     <select id="get_gen_table_column_list_by_ids">
         select * from gen_table_column where table_id in
         <foreach collection="table_ids" item="item" open="(" separator="," close=")">

@@ -1,8 +1,9 @@
 use serde::{Serialize,Deserialize};
 use rbatis::rbdc::datetime::DateTime;
-use crate::model::gen_table_model::{DbTableColumnList, DbTableList, GenTableModifyPayload};
+use salvo::oapi::ToSchema;
+use crate::model::gen_table_model::GenTableModifyPayload;
 
-#[derive(Debug,Serialize,Deserialize,Clone, Default)]
+#[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
 pub struct GenTableEntity {
     pub table_id:Option<i64>,
     pub table_name:Option<String>,
@@ -26,7 +27,7 @@ pub struct GenTableEntity {
     pub remark:Option<String>,
 }
 
-#[derive(Debug,Serialize,Deserialize,Clone, Default)]
+#[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
 pub struct GenTableColumnEntity {
     pub column_id: Option<i64>,
     pub table_id: Option<String>,
@@ -79,58 +80,3 @@ impl From<GenTableModifyPayload> for GenTableEntity {
     }
 }
 
-impl From<DbTableList> for GenTableEntity {
-    fn from(a: DbTableList) -> Self {
-        GenTableEntity {
-            table_id: None,
-            table_name: a.table_name,
-            table_comment: a.table_comment,
-            sub_table_name: None,
-            sub_table_fk_name: None,
-            class_name: None,
-            tpl_category: None,
-            package_name: None,
-            module_name: None,
-            business_name: None,
-            function_name: None,
-            function_author: None,
-            gen_type: None,
-            gen_path: None,
-            options: None,
-            create_by: None,
-            create_time: a.create_time,
-            update_by: None,
-            update_time: a.update_time,
-            remark: None,
-        }
-    }
-}
-
-impl From<DbTableColumnList> for GenTableColumnEntity {
-    fn from(a: DbTableColumnList) -> Self {
-        GenTableColumnEntity {
-            column_id: None,
-            table_id: None,
-            column_name: a.column_name,
-            column_comment: a.column_comment,
-            column_type: a.column_type,
-            java_type: None,
-            java_field: None,
-            is_pk: a.is_pk,
-            is_increment: a.is_increment,
-            is_required: a.is_required,
-            is_insert: None,
-            is_edit: None,
-            is_list: None,
-            is_query: None,
-            query_type: None,
-            html_type: None,
-            dict_type: None,
-            sort: a.sort,
-            create_by: None,
-            create_time: None,
-            update_by: None,
-            update_time: None,
-        }
-    }
-}

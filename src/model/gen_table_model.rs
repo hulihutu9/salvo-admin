@@ -104,23 +104,3 @@ pub struct TableInfo {
     pub tables: Option<Vec<GenTableList>>,
 }
 
-#[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
-#[serde(rename_all(serialize="camelCase",deserialize ="SCREAMING_SNAKE_CASE"))]
-pub struct DbTableList {
-    pub table_name:Option<String>,
-    pub table_comment:Option<String>,
-    pub create_time:Option<DateTime>,
-    pub update_time:Option<DateTime>,
-}
-
-#[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
-#[serde(rename_all(serialize="camelCase",deserialize ="SCREAMING_SNAKE_CASE"))]
-pub struct DbTableColumnList {
-    pub column_name: Option<String>,
-    pub column_comment: Option<String>,
-    pub column_type: Option<String>,
-    pub is_pk: Option<String>,
-    pub is_increment: Option<String>,
-    pub is_required: Option<String>,
-    pub sort: Option<i32>,
-}
