@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use handlebars::to_json;
 use serde_json::value::Map;
 use rbatis::rbdc::datetime::DateTime;
@@ -69,7 +69,7 @@ pub async fn put_edit_gen_table(user_id: i32, table: GenTableModifyPayload)->rba
     if rows.rows_affected.clone() > 0 {
         for column in columns.iter() {
             GenTableColumnEntity::update_by_column(
-                &mut GLOBAL_DB.clone(),&column,"column_id").await?;
+                &mut GLOBAL_DB.clone(),column,"column_id").await?;
         }
     }
     Ok(is_modify_ok(rows.rows_affected))
@@ -115,8 +115,8 @@ pub async fn import_tables(user_id: i32, table_names: Vec<&str>)
         table.function_name = gen_utils::replace_text(table.table_comment.clone());
         table.create_by = Some(user.user_name.clone());
         table.function_author = Some(user.user_name.clone());
-        table.package_name = Some("system".to_string());
-        table.module_name = Some("system".to_string());
+        table.package_name = Some("other".to_string());
+        table.module_name = Some("other".to_string());
         rows = GenTableEntity::insert(&mut GLOBAL_DB.clone(), &table).await?;
 
         // insert table "gen_table_column"
@@ -134,7 +134,7 @@ pub async fn import_tables(user_id: i32, table_names: Vec<&str>)
     Ok(is_modify_ok(rows.rows_affected))
 }
 
-pub async fn get_preview_code(id:String)->rbatis::Result<Option<HashMap<String,String>>>{
+pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,String>>>{
     let tables = gen_table_mapper::get_gen_table_by_id(
         &mut GLOBAL_DB.clone(),id.clone()).await?;
     let table = tables.get(0).unwrap();
@@ -150,9 +150,9 @@ pub async fn get_preview_code(id:String)->rbatis::Result<Option<HashMap<String,S
 
     // get primary key column info
     let mut pk_column: Option<&GenTableColumnList> = None;
-    let list = gen_table_mapper::get_gen_table_column_by_id(
+    let columns = gen_table_mapper::get_gen_table_column_by_id(
         &mut GLOBAL_DB.clone(),id).await?;
-    for column in list.iter() {
+    for column in columns.iter() {
         if column.is_pk == Some("1".to_string()) {
             pk_column = Some(column);
             break;
@@ -161,12 +161,18 @@ pub async fn get_preview_code(id:String)->rbatis::Result<Option<HashMap<String,S
 
     // set template context
     let mut context = Map::new();
-    context.insert("world".to_string(), to_json("世界!"));
+    // e.g.: sys_post
     context.insert("table_name".to_string(), to_json(table.table_name.clone().unwrap()));
+    // e.g.: SysPost
     context.insert("class_name".to_string(), to_json(table.class_name.clone().unwrap()));
+    // e.g.: system
     context.insert("module_name".to_string(), to_json(&table.module_name.clone().unwrap()));
+    // e.g.: post
     context.insert("business_name".to_string(), to_json(table.business_name.clone().unwrap()));
+    // e.g.: 岗位信息
     context.insert("function_name".to_string(), to_json(table.function_name.clone().unwrap()));
+    // e.g.: columns.column_id,
+    context.insert("columns".to_string(), to_json(columns));
 
     // render template
     let templates = gen_utils::get_template_list();

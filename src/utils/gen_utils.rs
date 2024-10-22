@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use serde_json::value::{Map, Value as Json};
 use handlebars::Handlebars;
 use crate::utils::common;
@@ -162,7 +162,7 @@ pub fn init_column_field(column: &mut GenTableColumnEntity, table: &GenTableEnti
     let column_name = column_name_lowercase.as_str();
     column.table_id = table.table_id.map(|v| v.to_string());
     column.create_by = table.create_by.clone();
-    column.java_field = Some(column_name.to_string());
+    column.java_field = Some(common::to_camel_case(column_name));
     // 设置默认字段类型
     column.java_type = Some("String".to_string());
     column.query_type = Some("EQ".to_string());
@@ -190,13 +190,13 @@ pub fn init_column_field(column: &mut GenTableColumnEntity, table: &GenTableEnti
             column.java_type = Some(TYPE_BIGDECIMAL.to_string());
         }
         // 如果是整形
-        else if str.len() != 0 && str.len() == 1 && str[0].parse::<i32>().unwrap_or(0) <= 10 {
-            column.java_type = Some(TYPE_INTEGER.to_string());
+        else if data_type == "bigint" {
+            column.java_type = Some(TYPE_LONG.to_string());
         }
         // 长整形
         else
         {
-            column.java_type = Some(TYPE_LONG.to_string());
+            column.java_type = Some(TYPE_INTEGER.to_string());
         }
     }
 
@@ -307,16 +307,16 @@ pub fn get_template_list() -> Vec<String> {
     let path = "./template/";
 
     vec!["README.md.hbs", "entity.rs.hbs", "model.rs.hbs", "router.rs.hbs", "controller.rs.hbs",
-         "service.rs.hbs", "mapper.rs.hbs", "xml.html.hbs"]
+         "service.rs.hbs", "mapper.rs.hbs", "xml.html.hbs", "index.vue.hbs"]
         .iter().map(|s| path.to_owned() + s).collect::<Vec<String>>()
 }
 
 // render template list
 pub fn render_template(
     context: Map<String, Json>, list: Vec<String>
-) -> HashMap<String, String> {
+) -> BTreeMap<String, String> {
     let mut handlebars = Handlebars::new();
-    let mut res = HashMap::new();
+    let mut res = BTreeMap::new();
 
     for file_name in list.iter() {
         handlebars.register_template_file("template", file_name).unwrap();

@@ -19,7 +19,7 @@
             </template>
           </el-table-column>
           <el-table-column
-            label="物理类型"
+            label="字段类型"
             prop="columnType"
             min-width="10%"
             :show-overflow-tooltip="true"
@@ -36,7 +36,7 @@
               </el-select>
             </template>
           </el-table-column>
-          <el-table-column label="属性" min-width="10%">
+          <el-table-column label="Java属性" min-width="10%">
             <template #default="scope">
               <el-input v-model="scope.row.javaField"></el-input>
             </template>

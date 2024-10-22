@@ -1,17 +1,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
 <mapper>
-    <select id="get_post_list_by_user_id">
-        `select sp.* from sys_post sp inner join sys_user_post sup on sp.post_id = sup.role_id where sup.user_id = #{user_id}`
+    <select id="get_{{business_name}}_list_by_user_id">
+        `select sp.* from {{table_name}} sp inner join sys_user_post sup on sp.{{business_name}}_id = sup.role_id where sup.user_id = #{user_id}`
     </select>
-    <select id="get_post_page">
-        `select * from sys_post`
+    <select id="get_{{business_name}}_page">
+        `select * from {{table_name}}`
         <where>
             1 = 1
-            <if test="post_code != '' && post_code != null">
-                ` and post_code = #{post_code}`
+            <if test="{{business_name}}_code != '' && {{business_name}}_code != null">
+                ` and {{business_name}}_code = #{ {{business_name}}_code}`
             </if>
-            <if test="post_name != '' && post_name != null ">
-                ` and post_name = #{post_name}`
+            <if test="{{business_name}}_name != '' && {{business_name}}_name != null ">
+                ` and {{business_name}}_name = #{ {{business_name}}_name}`
             </if>
             <if test="status != '' && status != null">
                 ` and status = #{status}`
@@ -19,34 +19,34 @@
             ` limit #{page_num},#{page_size}`
         </where>
     </select>
-    <select id="get_post_by_id">
-        `select * from sys_post`
+    <select id="get_{{business_name}}_by_id">
+        `select * from {{table_name}}`
         <where>
-            `post_id = #{post_id}`
+            `{{business_name}}_id = #{ {{business_name}}_id}`
         </where>
     </select>
-    <select id="get_post_count">
-        `select count(*) from sys_post`
+    <select id="get_{{business_name}}_count">
+        `select count(*) from {{table_name}}`
         <where>
             1 = 1
-            <if test="post_code != '' && post_code != null">
-                ` and post_code = #{post_code}`
+            <if test="{{business_name}}_code != '' && {{business_name}}_code != null">
+                ` and {{business_name}}_code = #{ {{business_name}}_code}`
             </if>
-            <if test="post_name != '' && post_name != null">
-                ` and post_name = #{post_name}`
+            <if test="{{business_name}}_name != '' && {{business_name}}_name != null">
+                ` and {{business_name}}_name = #{ {{business_name}}_name}`
             </if>
             <if test="status != '' && status != null">
                 ` and status = #{status}`
             </if>
         </where>
     </select>
-    <delete id="del_post_by_id">
-        `delete from sys_post`
+    <delete id="del_{{business_name}}_by_id">
+        `delete from {{table_name}}`
         <where>
-            `1 = 1 and post_id in ( ${post_id} )`
+            `1 = 1 and {{business_name}}_id in ( ${ {{business_name}}_id} )`
         </where>
     </delete>
-    <select id="get_post_list">
-        `select * from sys_post`
+    <select id="get_{{business_name}}_list">
+        `select * from {{table_name}}`
     </select>
 </mapper>

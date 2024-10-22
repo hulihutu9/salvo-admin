@@ -15,6 +15,23 @@ pub fn to_pascal_case(s: &str) -> String {
     result
 }
 
+#[allow(dead_code)]
+pub fn to_camel_case(s: &str) -> String {
+    let mut result= String::new();
+    let mut capitalize_next_char = false;
+    for c in s.chars() {
+        if c.is_whitespace() || c.is_ascii_punctuation() {
+            capitalize_next_char = true;
+        } else if capitalize_next_char {
+            result.push(c.to_uppercase().next().unwrap());
+            capitalize_next_char = false;
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
 // 返回2个字符之间的子字符串
 pub fn sub_string_between(s: &str, start_char: &str, end_char: &str) -> String {
     let start = match s.find(start_char) {

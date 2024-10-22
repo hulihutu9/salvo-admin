@@ -1,6 +1,7 @@
 use serde::{Serialize,Deserialize};
 use rbatis::rbdc::datetime::DateTime;
 use salvo::oapi::{ToParameters, ToSchema};
+use crate::entity::gen_table_entity::GenTableColumnEntity;
 
 #[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
 #[salvo(schema(rename_all="camelCase"))]
@@ -92,7 +93,7 @@ pub struct GenTableModifyPayload {
     pub update_by:Option<String>,
     pub update_time:Option<DateTime>,
     pub remark:Option<String>,
-    pub columns:Option<Vec<GenTableColumnList>>,
+    pub columns:Option<Vec<GenTableColumnEntity>>,
 }
 
 #[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]

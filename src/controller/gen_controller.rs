@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use salvo::{oapi::endpoint, Depot, Writer};
 use salvo::oapi::extract::{JsonBody, PathParam};
 use salvo::Request;
@@ -102,6 +102,6 @@ pub async fn post_import_tables(req:&mut Request,depot:&mut Depot)->Res<()>{
         (status_code = 200,body=ResObj<Option<TableInfo>>,description ="预览代码")
     ),
 )]
-pub async fn get_preview_code(id: PathParam<String>) ->Res<Option<HashMap<String,String>>> {
+pub async fn get_preview_code(id: PathParam<String>) ->Res<Option<BTreeMap<String,String>>> {
     match_ok(gen_table_service::get_preview_code(id.into_inner()).await)
 }
