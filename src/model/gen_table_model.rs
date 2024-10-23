@@ -105,3 +105,32 @@ pub struct TableInfo {
     pub tables: Option<Vec<GenTableList>>,
 }
 
+impl From<GenTableColumnEntity> for GenTableColumnList {
+    fn from(a: GenTableColumnEntity) -> Self {
+        GenTableColumnList {
+            column_id: a.column_id,
+            table_id: a.table_id,
+            column_name: a.column_name,
+            column_comment: a.column_comment,
+            column_type: a.column_type,
+            java_type: a.java_type,
+            java_field: a.java_field,
+            is_pk: a.is_pk,
+            is_increment: a.is_increment,
+            is_required: a.is_required,
+            is_insert: a.is_insert,
+            is_edit: a.is_edit,
+            is_list: a.is_list,
+            is_query: a.is_query,
+            query_type: a.query_type,
+            html_type: a.html_type,
+            dict_type: a.dict_type,
+            sort: a.sort,
+            create_by: a.create_by,
+            create_time: a.create_time,
+            update_by: a.update_by,
+            update_time: a.update_time,
+        }
+    }
+}
+

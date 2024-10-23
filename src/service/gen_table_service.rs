@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use tera::Context;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::rbdc::db::ExecResult;
 use crate::entity::gen_table_entity::{GenTableEntity, GenTableColumnEntity};
@@ -141,7 +140,7 @@ pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,
     // get sub table info
     let sub_table_name = table.sub_table_name.clone();
     let mut sub_table: Option<GenTableEntity> = None;
-    if let Some(table_name) = sub_table_name {
+    if let Some(table_name) = sub_table_name.clone() {
         let sub_tables = gen_table_mapper::get_gen_table_by_name(
             &mut GLOBAL_DB.clone(),table_name).await?;
         sub_table = sub_tables.get(0).cloned();
@@ -159,23 +158,11 @@ pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,
     }
 
     // set template context
-    let mut context = Context::new();
-    // e.g.: sys_post
-    context.insert("table_name".to_string(), &table.table_name.clone().unwrap());
-    // e.g.: SysPost
-    context.insert("class_name".to_string(), &table.class_name.clone().unwrap());
-    // e.g.: system
-    context.insert("module_name".to_string(), &table.module_name.clone().unwrap());
-    // e.g.: post
-    context.insert("business_name".to_string(), &table.business_name.clone().unwrap());
-    // e.g.: 岗位信息
-    context.insert("function_name".to_string(), &table.function_name.clone().unwrap());
-    // e.g.: columns.column_id,
-    context.insert("columns".to_string(), &columns);
+    let context = gen_utils::init_context(table, columns, sub_table_name);
 
     // render template
     let templates = gen_utils::get_template_list();
-    let res = gen_utils::render_template(context, templates);
+    let res = gen_utils::render_template(context.await, templates);
 
     Ok(Some(res))
 }

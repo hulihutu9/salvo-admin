@@ -1,8 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use tera::{Tera, Context};
 use crate::utils::common;
 use regex::Regex;
 use crate::entity::gen_table_entity::{GenTableEntity, GenTableColumnEntity};
+use crate::GLOBAL_DB;
+use crate::model::gen_table_model::{GenTableColumnList, GenTableList};
+use crate::mapper::gen_table_mapper;
 
 /**
  * 代码生成通用常量
@@ -310,6 +313,28 @@ pub fn get_template_list() -> Vec<String> {
         .iter().map(|s| path.to_owned() + s).collect::<Vec<String>>()
 }
 
+pub async fn init_context(
+    table: &GenTableList, columns: Vec<GenTableColumnList>, sub_table_name: Option<String>
+) -> Context {
+    let mut context = Context::new();
+    // e.g.: sys_post
+    context.insert("table_name".to_string(), &table.table_name.clone().unwrap());
+    // e.g.: SysPost
+    context.insert("class_name".to_string(), &table.class_name.clone().unwrap());
+    // e.g.: system
+    context.insert("module_name".to_string(), &table.module_name.clone().unwrap());
+    // e.g.: post
+    context.insert("business_name".to_string(), &table.business_name.clone().unwrap());
+    // e.g.: 岗位信息
+    context.insert("function_name".to_string(), &table.function_name.clone().unwrap());
+    // e.g.: columns.column_id,
+    context.insert("columns".to_string(), &columns);
+    // table and sub_table dict
+    let dicts = get_dicts(columns, sub_table_name).await;
+    context.insert("dicts".to_string(), &dicts);
+    context
+}
+
 // render template list
 pub fn render_template(
     context: Context, list: Vec<String>
@@ -318,7 +343,7 @@ pub fn render_template(
         Ok(t) => t,
         Err(e) => {
             println!("Parsing error(s): {}", e);
-            ::std::process::exit(1);
+            std::process::exit(1);
         }
     };
 
@@ -329,3 +354,67 @@ pub fn render_template(
     }
     res
 }
+
+pub fn is_not_empty_column(field: Option<String>) -> bool {
+    match field {
+        Some(field) => {
+            if field.is_empty() {
+                false
+            } else {
+                true
+            }
+        }
+        None => false
+    }
+}
+
+pub fn is_super_column(java_field: Option<String>) -> bool {
+    match java_field {
+        Some(field) => {
+            ["createBy", "createTime", "updateBy", "updateTime", "remark",  // BaseEntity
+                "parentName", "parentId", "orderNum", "ancestors"  // TreeEntity
+            ].contains(&field.as_str())
+        }
+        None => false
+    }
+}
+
+/**
+ * 添加字典列表
+ *
+ * @param dicts 字典列表
+ * @param columns 列集合
+ */
+pub fn add_dicts(dicts: &mut HashSet<String> , columns: Vec<GenTableColumnList>) {
+    for column in columns {
+        if !is_super_column(column.java_field) &&
+            is_not_empty_column(column.dict_type.clone()) &&
+            [HTML_SELECT, HTML_RADIO, HTML_CHECKBOX].contains(&column.html_type.unwrap().as_str()) {
+            dicts.insert("'".to_string() + &column.dict_type.unwrap() + "'");
+        }
+    }
+}
+
+/**
+ * 根据列类型获取字典组
+ *
+ * @param genTable 业务表对象
+ * @return 返回字典组
+ */
+pub async fn get_dicts(columns: Vec<GenTableColumnList>, sub_table_name: Option<String>) -> String {
+    let mut dicts: HashSet<String> = HashSet::new();
+    add_dicts(&mut dicts, columns);
+    if let Some(table_name) = sub_table_name {
+        let sub_columns =
+            gen_table_mapper::get_db_table_columns_by_name(&mut GLOBAL_DB.clone(), table_name)
+                .await.unwrap();
+        let columns: Vec<GenTableColumnList> =
+            sub_columns.iter().map(|c| (*c).clone().into()).collect();
+        add_dicts(&mut dicts, columns);
+    }
+
+    let dict_str: Vec<String> = dicts.iter().map(|s| s.to_string()).collect();
+    dict_str.join(", ")
+}
+
+
