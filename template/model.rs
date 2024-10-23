@@ -6,11 +6,11 @@ use salvo::oapi::{ToParameters, ToSchema};
 #[salvo(schema(rename_all="camelCase"))]
 #[serde(rename_all(serialize="camelCase"))]
 pub struct {{class_name}}List{
-    {{#each columns as |c| }}
-    {{#if c.isList}}
+    {% for c in columns %}
+    {% if c.isList %}
     pub {{c.columnName}}: Option<{{c.javaType}}>,
-    {{/if}}
-    {{/each}}
+    {% endif %}
+    {% endfor %}
 }
 
 #[derive(Debug,Serialize,Deserialize,ToParameters,Clone)]
@@ -20,20 +20,20 @@ pub struct {{class_name}}List{
 pub struct {{class_name}}ListPayload{
     pub page_num:u64,
     pub page_size:u64,
-    {{#each columns as |c| }}
-    {{#if c.isQuery}}
+    {% for c in columns %}
+    {% if c.isList %}
     pub {{c.columnName}}: Option<{{c.javaType}}>,
-    {{/if}}
-    {{/each}}
+    {% endif %}
+    {% endfor %}
 }
 
 #[derive(Debug,Serialize,Deserialize,ToSchema,Clone)]
 #[salvo(schema(rename_all="camelCase"))]
 #[serde(rename_all(deserialize="camelCase"))]
 pub struct {{class_name}}ModifyPayload{
-    {{#each columns as |c| }}
-    {{#if c.isEdit}}
+    {% for c in columns %}
+    {% if c.isEdit %}
     pub {{c.columnName}}: Option<{{c.javaType}}>,
-    {{/if}}
-    {{/each}}
+    {% endif %}
+    {% endfor %}
 }

@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
-use handlebars::to_json;
-use serde_json::value::Map;
+use tera::Context;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::rbdc::db::ExecResult;
 use crate::entity::gen_table_entity::{GenTableEntity, GenTableColumnEntity};
@@ -160,19 +159,19 @@ pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,
     }
 
     // set template context
-    let mut context = Map::new();
+    let mut context = Context::new();
     // e.g.: sys_post
-    context.insert("table_name".to_string(), to_json(table.table_name.clone().unwrap()));
+    context.insert("table_name".to_string(), &table.table_name.clone().unwrap());
     // e.g.: SysPost
-    context.insert("class_name".to_string(), to_json(table.class_name.clone().unwrap()));
+    context.insert("class_name".to_string(), &table.class_name.clone().unwrap());
     // e.g.: system
-    context.insert("module_name".to_string(), to_json(&table.module_name.clone().unwrap()));
+    context.insert("module_name".to_string(), &table.module_name.clone().unwrap());
     // e.g.: post
-    context.insert("business_name".to_string(), to_json(table.business_name.clone().unwrap()));
+    context.insert("business_name".to_string(), &table.business_name.clone().unwrap());
     // e.g.: 岗位信息
-    context.insert("function_name".to_string(), to_json(table.function_name.clone().unwrap()));
+    context.insert("function_name".to_string(), &table.function_name.clone().unwrap());
     // e.g.: columns.column_id,
-    context.insert("columns".to_string(), to_json(columns));
+    context.insert("columns".to_string(), &columns);
 
     // render template
     let templates = gen_utils::get_template_list();

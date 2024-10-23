@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
-use serde_json::value::{Map, Value as Json};
-use handlebars::Handlebars;
+use tera::{Tera, Context};
 use crate::utils::common;
 use regex::Regex;
 use crate::entity::gen_table_entity::{GenTableEntity, GenTableColumnEntity};
@@ -304,23 +303,28 @@ pub fn replace_text(text: Option<String>) -> Option<String> {
 
 // get template
 pub fn get_template_list() -> Vec<String> {
-    let path = "./template/";
+    let path = "";
 
-    vec!["README.md.hbs", "entity.rs.hbs", "model.rs.hbs", "router.rs.hbs", "controller.rs.hbs",
-         "service.rs.hbs", "mapper.rs.hbs", "xml.html.hbs", "index.vue.hbs"]
+    vec!["README.md", "entity.rs", "model.rs", "router.rs", "controller.rs",
+         "service.rs", "mapper.rs", "xml.html", "index.vue"]
         .iter().map(|s| path.to_owned() + s).collect::<Vec<String>>()
 }
 
 // render template list
 pub fn render_template(
-    context: Map<String, Json>, list: Vec<String>
+    context: Context, list: Vec<String>
 ) -> BTreeMap<String, String> {
-    let mut handlebars = Handlebars::new();
-    let mut res = BTreeMap::new();
+    let tera = match Tera::new("template/*") {
+        Ok(t) => t,
+        Err(e) => {
+            println!("Parsing error(s): {}", e);
+            ::std::process::exit(1);
+        }
+    };
 
+    let mut res = BTreeMap::new();
     for file_name in list.iter() {
-        handlebars.register_template_file("template", file_name).unwrap();
-        let output = handlebars.render("template", &context).unwrap();
+        let output = tera.render(file_name, &context).unwrap();
         res.insert(file_name.to_string(), output);
     }
     res

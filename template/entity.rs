@@ -3,7 +3,7 @@ use rbatis::rbdc::datetime::DateTime;
 
 #[derive(Debug,Serialize,Deserialize,Clone)]
 pub struct {{class_name}}Entity{
-    {{#each columns as |c| }}
+    {% for c in columns %}
     pub {{c.columnName}}: Option<{{c.javaType}}>,
-    {{/each}}
+    {% endfor %}
 }
