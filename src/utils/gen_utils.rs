@@ -1,7 +1,10 @@
+use std::io::{Seek, Write};
 use std::collections::{BTreeMap, HashSet};
 use tera::{Tera, Context};
 use crate::utils::common;
 use regex::Regex;
+use zip::write::FileOptions;
+use zip::ZipWriter;
 use crate::entity::gen_table_entity::{GenTableEntity, GenTableColumnEntity};
 use crate::GLOBAL_DB;
 use crate::model::gen_table_model::GenTableColumnList;
@@ -401,6 +404,33 @@ pub fn render_template(
         res.insert(file_name.to_string(), output);
     }
     res
+}
+
+
+/// 在内存中生成zip文件
+/// 一般在做web开发时，都喜欢在内存中动态生成报表多，然后直接打包成一个
+pub fn compress<T>(zip: &mut ZipWriter<T>, file_name: &str, b: &[u8]) -> zip::result::ZipResult<()>
+where T: Write + Seek
+{
+    let options = FileOptions::default()
+        .compression_method(zip::CompressionMethod::Bzip2) //直接用了bzip2压缩方式，其它参看枚举
+        .unix_permissions(0o755); //unix系统权限
+    zip.start_file(file_name, options)?;
+    zip.write_all(b)?;
+    Ok(())
+}
+
+pub fn generate_zip_file(render_files: BTreeMap<String, String>) {
+    let buf=vec![];
+    // A Cursor wraps an in-memory buffer and provides it with a Seek implementation.
+    let writer = std::io::Cursor::new(buf);
+    let mut zip = ZipWriter::new(writer);
+
+    for (file_name, file) in render_files.iter() {
+        compress(&mut zip, file_name, file.as_bytes()).unwrap();
+    }
+    //到这一步就转成生成的字节了
+    let writer= zip.finish().unwrap();
 }
 
 pub fn is_not_empty_column(field: Option<String>) -> bool {
