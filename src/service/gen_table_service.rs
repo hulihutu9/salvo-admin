@@ -7,7 +7,7 @@ use crate::GLOBAL_DB;
 use crate::mapper::gen_table_mapper;
 use crate::model::common_model::Page;
 use crate::model::gen_table_model::{
-    GenTableList, GenTableModifyPayload, TableInfo, GenTableColumnList
+    GenTableList, GenTableModifyPayload, TableInfo
 };
 use crate::utils::func::{create_page, create_page_list, is_modify_ok};
 use crate::utils::gen_utils;
@@ -133,32 +133,8 @@ pub async fn import_tables(user_id: i32, table_names: Vec<&str>)
 }
 
 pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,String>>>{
-    let tables = gen_table_mapper::get_gen_table_by_id(
-        &mut GLOBAL_DB.clone(),id.clone()).await?;
-    let table = tables.get(0).unwrap();
-
-    // get sub table info
-    let sub_table_name = table.sub_table_name.clone();
-    let mut sub_table: Option<GenTableEntity> = None;
-    if let Some(table_name) = sub_table_name.clone() {
-        let sub_tables = gen_table_mapper::get_gen_table_by_name(
-            &mut GLOBAL_DB.clone(),table_name).await?;
-        sub_table = sub_tables.get(0).cloned();
-    }
-
-    // get primary key column info
-    let mut pk_column: Option<&GenTableColumnList> = None;
-    let columns = gen_table_mapper::get_gen_table_column_by_id(
-        &mut GLOBAL_DB.clone(),id).await?;
-    for column in columns.iter() {
-        if column.is_pk == Some("1".to_string()) {
-            pk_column = Some(column);
-            break;
-        }
-    }
-
     // set template context
-    let context = gen_utils::init_context(table, columns, sub_table_name);
+    let context = gen_utils::init_context(id);
 
     // render template
     let templates = gen_utils::get_template_list();

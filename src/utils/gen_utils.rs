@@ -4,7 +4,7 @@ use crate::utils::common;
 use regex::Regex;
 use crate::entity::gen_table_entity::{GenTableEntity, GenTableColumnEntity};
 use crate::GLOBAL_DB;
-use crate::model::gen_table_model::{GenTableColumnList, GenTableList};
+use crate::model::gen_table_model::GenTableColumnList;
 use crate::mapper::gen_table_mapper;
 
 /**
@@ -313,9 +313,48 @@ pub fn get_template_list() -> Vec<String> {
         .iter().map(|s| path.to_owned() + s).collect::<Vec<String>>()
 }
 
-pub async fn init_context(
-    table: &GenTableList, columns: Vec<GenTableColumnList>, sub_table_name: Option<String>
-) -> Context {
+pub async fn init_context(id: String) -> Context {
+    let tables = gen_table_mapper::get_gen_table_by_id(
+        &mut GLOBAL_DB.clone(),id.clone()).await.unwrap();
+    let table = tables.get(0).unwrap();
+
+    // get sub table info
+    let sub_table_name = table.sub_table_name.clone();
+    let sub_tables: Vec<GenTableEntity> = match sub_table_name.clone() {
+        Some(table_name) => gen_table_mapper::get_gen_table_by_name(
+            &mut GLOBAL_DB.clone(),table_name).await.unwrap(),
+        None => vec![],
+    };
+    let sub_table = sub_tables.get(0).cloned();
+    let sub_class_name = match sub_table {
+        Some(ref table) => table.class_name.clone().unwrap_or("".to_string()),
+        None => "".to_string(),
+    };
+    let having_sub_table = match sub_table {
+        Some(_) => true,
+        None => false,
+    };
+
+    // get primary key column info
+    let mut pk_column: Option<&GenTableColumnList> = None;
+    let columns = gen_table_mapper::get_gen_table_column_by_id(
+        &mut GLOBAL_DB.clone(),id).await.unwrap();
+    for column in columns.iter() {
+        if column.is_pk == Some("1".to_string()) {
+            pk_column = Some(column);
+            break;
+        }
+    }
+
+    // get sub_table columns
+    let sub_columns_list = match sub_table_name.clone() {
+        Some(table_name) => gen_table_mapper::get_db_table_columns_by_name(
+            &mut GLOBAL_DB.clone(), table_name.clone()).await.unwrap(),
+        None => vec![],
+    };
+    let sub_columns: Vec<GenTableColumnList> =
+        sub_columns_list.iter().map(|c| (*c).clone().into()).collect();
+
     let mut context = Context::new();
     // e.g.: sys_post
     context.insert("table_name".to_string(), &table.table_name.clone().unwrap());
@@ -329,9 +368,18 @@ pub async fn init_context(
     context.insert("function_name".to_string(), &table.function_name.clone().unwrap());
     // e.g.: columns.column_id,
     context.insert("columns".to_string(), &columns);
+    // if having sub_table,
+    context.insert("having_sub_table".to_string(), &having_sub_table);
+    // e.g.: subTable,
+    context.insert("subTable".to_string(), &sub_table);
+    // e.g.: subclassName,
+    context.insert("subclassName".to_string(), &sub_class_name.clone());
+    // e.g.: pk_column,
+    context.insert("pk_column".to_string(), &pk_column);
     // table and sub_table dict
-    let dicts = get_dicts(columns, sub_table_name).await;
+    let dicts = get_dicts(columns, sub_columns).await;
     context.insert("dicts".to_string(), &dicts);
+
     context
 }
 
@@ -401,17 +449,12 @@ pub fn add_dicts(dicts: &mut HashSet<String> , columns: Vec<GenTableColumnList>)
  * @param genTable 业务表对象
  * @return 返回字典组
  */
-pub async fn get_dicts(columns: Vec<GenTableColumnList>, sub_table_name: Option<String>) -> String {
+pub async fn get_dicts(
+    columns: Vec<GenTableColumnList>, sub_columns: Vec<GenTableColumnList>
+) -> String {
     let mut dicts: HashSet<String> = HashSet::new();
     add_dicts(&mut dicts, columns);
-    if let Some(table_name) = sub_table_name {
-        let sub_columns =
-            gen_table_mapper::get_db_table_columns_by_name(&mut GLOBAL_DB.clone(), table_name)
-                .await.unwrap();
-        let columns: Vec<GenTableColumnList> =
-            sub_columns.iter().map(|c| (*c).clone().into()).collect();
-        add_dicts(&mut dicts, columns);
-    }
+    add_dicts(&mut dicts, sub_columns);
 
     let dict_str: Vec<String> = dicts.iter().map(|s| s.to_string()).collect();
     dict_str.join(", ")
