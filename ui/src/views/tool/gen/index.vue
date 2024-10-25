@@ -79,10 +79,7 @@
 
     <el-table v-loading="loading" :data="tableList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" align="center" width="55"></el-table-column>
-      <el-table-column label="序号" type="index" width="50" align="center">
-        <template #default="scope">
-          <span>{{(queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1}}</span>
-        </template>
+      <el-table-column label="序号" prop="tableId" width="50" align="center">
       </el-table-column>
       <el-table-column
         label="表名称"
@@ -220,8 +217,8 @@ function handleQuery() {
 }
 /** 生成代码操作 */
 function handleGenTable(row) {
-  const tbNames = row.tableName || tableNames.value;
-  if (tbNames == "") {
+  const tbIds = row.tableId || ids.value;
+  if (tbIds == "") {
     proxy.$modal.msgError("请选择要生成的数据");
     return;
   }
@@ -230,7 +227,7 @@ function handleGenTable(row) {
       proxy.$modal.msgSuccess("成功生成到自定义路径：" + row.genPath);
     });
   } else {
-    proxy.$download.zip("/tool/gen/batchGenCode?tables=" + tbNames, "ruoyi.zip");
+    proxy.$download.zip("/tool/gen/batchGenCode?tables=" + tbIds, "ruoyi.zip");
   }
 }
 /** 同步数据库操作 */

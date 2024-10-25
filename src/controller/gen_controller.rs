@@ -105,3 +105,21 @@ pub async fn post_import_tables(req:&mut Request,depot:&mut Depot)->Res<()>{
 pub async fn get_preview_code(id: PathParam<String>) ->Res<Option<BTreeMap<String,String>>> {
     match_ok(gen_table_service::get_preview_code(id.into_inner()).await)
 }
+
+/// 根据表name批量生成
+#[endpoint(
+    tags("代码生成"),
+    responses(
+        (status_code = 200,body=ResObj<()>,description ="删除数据表")
+    ),
+)]
+pub async fn batch_gen_code(req:&mut Request,)->Res<()>{
+    let param = req.query::<String>("tables").unwrap();
+    let ids: Vec<&str> = param.split(",").collect();
+
+    for id in ids {
+
+    }
+
+    match_no_res_ok(gen_table_service::batch_gen_code(ids).await)
+}

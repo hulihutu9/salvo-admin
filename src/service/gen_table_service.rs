@@ -142,3 +142,12 @@ pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,
 
     Ok(Some(res))
 }
+
+pub async fn batch_gen_code(ids: Vec<&str>) ->rbatis::Result<bool> {
+    for id in ids {
+        let res = get_preview_code(id.to_string()).await;
+
+    }
+
+    Ok(true)
+}
