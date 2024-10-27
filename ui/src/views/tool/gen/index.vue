@@ -254,7 +254,7 @@ function handlePreview(row) {
   previewTable(row.tableId).then(response => {
     preview.value.data = response.data;
     preview.value.open = true;
-    preview.value.activeName = "README.md";
+    preview.value.activeName = "index.vue";
   });
 }
 /** 复制代码成功 */

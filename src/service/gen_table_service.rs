@@ -132,22 +132,23 @@ pub async fn import_tables(user_id: i32, table_names: Vec<&str>)
     Ok(is_modify_ok(rows.rows_affected))
 }
 
-pub async fn get_preview_code(id:String)->rbatis::Result<Option<BTreeMap<String,String>>>{
+pub async fn get_preview_code(id:String)->rbatis::Result<BTreeMap<String,String>>{
     // set template context
-    let context = gen_utils::init_context(id);
+    let (context, table_info) = gen_utils::init_context(id).await;
 
     // render template
-    let templates = gen_utils::get_template_list();
-    let res = gen_utils::render_template(context.await, templates);
+    let templates = gen_utils::get_template_list(table_info);
+    let res = gen_utils::render_template(context, templates);
 
-    Ok(Some(res))
+    Ok(res)
 }
 
-pub async fn batch_gen_code(ids: Vec<&str>) ->rbatis::Result<bool> {
+pub async fn batch_gen_code(ids: Vec<&str>) -> Vec<u8> {
+    let mut map = BTreeMap::new();
     for id in ids {
-        let res = get_preview_code(id.to_string()).await;
-
+        let mut render_files = get_preview_code(id.to_string()).await.unwrap();
+        map.append(&mut render_files);
     }
 
-    Ok(true)
+    gen_utils::generate_zip_file(map)
 }

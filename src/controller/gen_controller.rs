@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
-use salvo::{oapi::endpoint, Depot, Writer};
+use salvo::{oapi::endpoint, Depot, Writer, Response};
+use salvo::hyper::body::Bytes;
 use salvo::oapi::extract::{JsonBody, PathParam};
 use salvo::Request;
 use crate::model::common_model::Page;
@@ -102,7 +103,7 @@ pub async fn post_import_tables(req:&mut Request,depot:&mut Depot)->Res<()>{
         (status_code = 200,body=ResObj<Option<TableInfo>>,description ="预览代码")
     ),
 )]
-pub async fn get_preview_code(id: PathParam<String>) ->Res<Option<BTreeMap<String,String>>> {
+pub async fn get_preview_code(id: PathParam<String>) ->Res<BTreeMap<String,String>> {
     match_ok(gen_table_service::get_preview_code(id.into_inner()).await)
 }
 
@@ -113,13 +114,11 @@ pub async fn get_preview_code(id: PathParam<String>) ->Res<Option<BTreeMap<Strin
         (status_code = 200,body=ResObj<()>,description ="删除数据表")
     ),
 )]
-pub async fn batch_gen_code(req:&mut Request,)->Res<()>{
+pub async fn batch_gen_code(req:&mut Request,res: &mut Response) {
     let param = req.query::<String>("tables").unwrap();
     let ids: Vec<&str> = param.split(",").collect();
+    let zip_file = gen_table_service::batch_gen_code(ids).await;
 
-    for id in ids {
-
-    }
-
-    match_no_res_ok(gen_table_service::batch_gen_code(ids).await)
+    res.add_header("content-type", "application/x-zip-compressed", true).unwrap();
+    res.write_body(Bytes::from(zip_file)).unwrap();
 }

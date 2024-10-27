@@ -3,12 +3,17 @@ use std::collections::{BTreeMap, HashSet};
 use tera::{Tera, Context};
 use crate::utils::common;
 use regex::Regex;
-use zip::write::FileOptions;
+use zip::write::SimpleFileOptions;
 use zip::ZipWriter;
 use crate::entity::gen_table_entity::{GenTableEntity, GenTableColumnEntity};
 use crate::GLOBAL_DB;
 use crate::model::gen_table_model::GenTableColumnList;
 use crate::mapper::gen_table_mapper;
+
+pub struct TableInfo {
+    pub module_name: String,
+    pub business_name: String,
+}
 
 /**
  * 代码生成通用常量
@@ -308,15 +313,25 @@ pub fn replace_text(text: Option<String>) -> Option<String> {
 }
 
 // get template
-pub fn get_template_list() -> Vec<String> {
-    let path = "";
-
-    vec!["README.md", "entity.rs", "model.rs", "router.rs", "controller.rs",
-         "service.rs", "mapper.rs", "xml.html", "index.vue"]
-        .iter().map(|s| path.to_owned() + s).collect::<Vec<String>>()
+pub fn get_template_list(table_info: TableInfo) -> Vec<(String, String)> {
+    let module = table_info.module_name;
+    let business = table_info.business_name;
+    let root = "src/".to_string();
+    let file_info: Vec<(String, String)> = vec![
+        ("README.md".to_string(), root.clone() + &business + "_README.md"),
+        ("entity.rs".to_string(), root.clone() + "entity/" + &module + "/" + &business + "_entity.rs"),
+        ("model.rs".to_string(), root.clone() + "model/" + &module + "/" + &business + "_model.rs"),
+        ("router.rs".to_string(), root.clone() + "router/" + &module + "/" + &business + "_router.rs"),
+        ("controller.rs".to_string(), root.clone() + "controller/" + &module + "/" + &business + "_controller.rs"),
+        ("service.rs".to_string(), root.clone() + "service/" + &module + "/" + &business + "_service.rs"),
+        ("mapper.rs".to_string(), root.clone() + "mapper/" + &module + "/" + &business + "_mapper.rs"),
+        ("xml.html".to_string(), root.clone() + "mapper/xml/" + &module + "/" + &business + "_xml.html"),
+        ("index.vue".to_string(), "ui/src/views/".to_string() + &module + "/" + &business + "/index.vue"),
+    ];
+    file_info
 }
 
-pub async fn init_context(id: String) -> Context {
+pub async fn init_context(id: String) -> (Context, TableInfo) {
     let tables = gen_table_mapper::get_gen_table_by_id(
         &mut GLOBAL_DB.clone(),id.clone()).await.unwrap();
     let table = tables.get(0).unwrap();
@@ -383,12 +398,16 @@ pub async fn init_context(id: String) -> Context {
     let dicts = get_dicts(columns, sub_columns).await;
     context.insert("dicts".to_string(), &dicts);
 
-    context
+    let table_info = TableInfo {
+        module_name: table.module_name.clone().unwrap(),
+        business_name: table.business_name.clone().unwrap()
+    };
+    (context, table_info)
 }
 
 // render template list
 pub fn render_template(
-    context: Context, list: Vec<String>
+    context: Context, list: Vec<(String,String)>
 ) -> BTreeMap<String, String> {
     let tera = match Tera::new("template/*") {
         Ok(t) => t,
@@ -399,28 +418,24 @@ pub fn render_template(
     };
 
     let mut res = BTreeMap::new();
-    for file_name in list.iter() {
-        let output = tera.render(file_name, &context).unwrap();
-        res.insert(file_name.to_string(), output);
+    for file_info in list.iter() {
+        let output = tera.render(&file_info.0, &context).unwrap();
+        res.insert(file_info.1.to_string(), output);
     }
     res
 }
-
 
 /// 在内存中生成zip文件
 /// 一般在做web开发时，都喜欢在内存中动态生成报表多，然后直接打包成一个
 pub fn compress<T>(zip: &mut ZipWriter<T>, file_name: &str, b: &[u8]) -> zip::result::ZipResult<()>
 where T: Write + Seek
 {
-    let options = FileOptions::default()
-        .compression_method(zip::CompressionMethod::Bzip2) //直接用了bzip2压缩方式，其它参看枚举
-        .unix_permissions(0o755); //unix系统权限
-    zip.start_file(file_name, options)?;
+    zip.start_file(file_name, SimpleFileOptions::default())?;
     zip.write_all(b)?;
     Ok(())
 }
 
-pub fn generate_zip_file(render_files: BTreeMap<String, String>) {
+pub fn generate_zip_file(render_files: BTreeMap<String, String>) -> Vec<u8>{
     let buf=vec![];
     // A Cursor wraps an in-memory buffer and provides it with a Seek implementation.
     let writer = std::io::Cursor::new(buf);
@@ -430,7 +445,8 @@ pub fn generate_zip_file(render_files: BTreeMap<String, String>) {
         compress(&mut zip, file_name, file.as_bytes()).unwrap();
     }
     //到这一步就转成生成的字节了
-    let writer= zip.finish().unwrap();
+    let res = zip.finish().unwrap();
+    res.into_inner()
 }
 
 pub fn is_not_empty_column(field: Option<String>) -> bool {
